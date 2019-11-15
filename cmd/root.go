@@ -47,9 +47,9 @@ func init() {
 }
 
 var RootCmd = &cobra.Command{
-	Use:          "dw",
-	Short:        "debugWire toolkit",
-	Long:         "debugWire toolkit",
+	Use:          "dwtk",
+	Short:        "debugWIRE toolkit for AVR microcontrollers",
+	Long:         "debugWIRE toolkit for AVR microcontrollers",
 	Version:      Version,
 	SilenceUsage: true,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
