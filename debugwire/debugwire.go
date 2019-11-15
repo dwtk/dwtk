@@ -40,7 +40,7 @@ func New(portDevice string, baudrate uint32) (*DebugWire, error) {
 	rv.MCU = avr.GetMCU(sign)
 	if rv.MCU == nil {
 		rv.Close()
-		return nil, fmt.Errorf("debugwire: failed to detect MCU from signature: %s", sign)
+		return nil, fmt.Errorf("debugwire: failed to detect MCU from signature: 0x%04x", sign)
 	}
 
 	return rv, nil
