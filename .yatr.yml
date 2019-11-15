@@ -1,0 +1,8 @@
+targets:
+    distcheck:
+        task_args:
+            - ./...
+    dist-linux-amd64:
+        task_args:
+            - -ldflags
+            - "-X golang.rgm.io/dwtk/cmd.Version={{.Version}}"

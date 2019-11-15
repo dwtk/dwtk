@@ -14,6 +14,8 @@ var (
 	serialPort string
 	baudrate   uint32
 	debug      bool
+
+	Version = "git"
 )
 
 func init() {
@@ -48,7 +50,7 @@ var RootCmd = &cobra.Command{
 	Use:          "dw",
 	Short:        "debugWire toolkit",
 	Long:         "debugWire toolkit",
-	Version:      "",
+	Version:      Version,
 	SilenceUsage: true,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		if debug {

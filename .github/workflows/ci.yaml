@@ -1,0 +1,30 @@
+name: CI
+on: push
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        target:
+          - distcheck
+          - dist-linux-amd64
+
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+        id: go
+
+      - name: Check out code
+        uses: actions/checkout@v1
+
+      - name: Run yatr
+        env:
+          CGO_ENABLED: "0"
+          TARGET: "${{ matrix.target }}"
+          DISTFILES_URL: "${{ secrets.DISTFILES_URL }}"
+        run: curl -sSf https://yatr.rgm.io/run.sh | bash
