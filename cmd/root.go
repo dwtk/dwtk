@@ -5,6 +5,7 @@ import (
 	"golang.rgm.io/dwtk/debugwire"
 	"golang.rgm.io/dwtk/logger"
 	"golang.rgm.io/dwtk/usbserial"
+	"golang.rgm.io/dwtk/version"
 )
 
 var (
@@ -14,8 +15,6 @@ var (
 	serialPort string
 	baudrate   uint32
 	debug      bool
-
-	Version = "git"
 )
 
 func init() {
@@ -50,7 +49,7 @@ var RootCmd = &cobra.Command{
 	Use:          "dwtk",
 	Short:        "debugWIRE toolkit for AVR microcontrollers",
 	Long:         "debugWIRE toolkit for AVR microcontrollers",
-	Version:      Version,
+	Version:      version.Version,
 	SilenceUsage: true,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		if debug {

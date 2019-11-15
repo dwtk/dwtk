@@ -5,4 +5,4 @@ targets:
     dist-linux-amd64:
         task_args:
             - -ldflags
-            - "-X golang.rgm.io/dwtk/cmd.Version={{.Version}}"
+            - "-X golang.rgm.io/dwtk/version.Version={{.Version}}"
