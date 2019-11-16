@@ -1,10 +1,9 @@
-name: CI
+name: yatr
 on: push
 
 jobs:
-  build:
-    name: Build and test
-    runs-on: ubuntu-latest
+  yatr:
+    runs-on: ubuntu-18.04
 
     strategy:
       matrix:
@@ -17,7 +16,6 @@ jobs:
         uses: actions/setup-go@v1
         with:
           go-version: 1.13
-        id: go
 
       - name: Check out code
         uses: actions/checkout@v1
