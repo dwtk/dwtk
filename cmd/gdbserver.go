@@ -29,7 +29,7 @@ func init() {
 
 var GDBServerCmd = &cobra.Command{
 	Use:   "gdbserver",
-	Short: "Start remote debugging session for GDB",
+	Short: "start remote debugging session for GDB",
 	Long:  "This command starts a remote debuggins session for GDB.",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {

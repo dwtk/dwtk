@@ -8,7 +8,7 @@ import (
 
 var InfoCmd = &cobra.Command{
 	Use:   "info",
-	Short: "Retrieve information from the target MCU and exit",
+	Short: "retrieve information from the target MCU and exit",
 	Long:  "This command retrieves information from the target MCU and exits.",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {

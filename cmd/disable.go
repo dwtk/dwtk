@@ -6,7 +6,7 @@ import (
 
 var DisableCmd = &cobra.Command{
 	Use:   "disable",
-	Short: "Disable debugWIRE in the target MCU, reset it and exit",
+	Short: "disable debugWIRE in the target MCU, reset it and exit",
 	Long:  "This command disables debugWIRE in the target MCU, resets it and exits.",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {

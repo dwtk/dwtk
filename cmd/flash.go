@@ -18,14 +18,14 @@ func init() {
 		"no-verify",
 		"n",
 		false,
-		"Do not verify flashed firmware",
+		"do not verify flashed firmware",
 	)
 }
 
 var FlashCmd = &cobra.Command{
 	Use:   "flash FILE",
-	Short: "Flash Intel Hex program to target MCU, verify and exit",
-	Long:  "This command flashes Intel Hex program to target MCU, verifies and exits.",
+	Short: "flash firmware (ELF or Intel HEX) to target MCU, verify and exit",
+	Long:  "This command flashes firmware (ELF or Intel Hex) to target MCU, verifies and exits.",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		f, err := firmware.Parse(args[0])

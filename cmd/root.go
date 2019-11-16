@@ -23,21 +23,21 @@ func init() {
 		"serial-port",
 		"s",
 		"",
-		"Serial port device (e.g. /dev/ttyUSB0. Default: detect)",
+		"serial port device (e.g. /dev/ttyUSB0) (Default: detect)",
 	)
 	RootCmd.PersistentFlags().Uint32VarP(
 		&baudrate,
 		"baudrate",
 		"b",
 		0,
-		"Serial communication baudrate (e.g. 62500. Default: detect)",
+		"serial port baudrate (e.g. 62500) (Default: detect)",
 	)
 	RootCmd.PersistentFlags().BoolVarP(
 		&debug,
 		"debug",
 		"d",
 		false,
-		"Enable debugging messages (Default: false)",
+		"enable debugging messages",
 	)
 	RootCmd.SetHelpCommand(&cobra.Command{
 		Use:    "no-help",
