@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -12,10 +10,6 @@ var InfoCmd = &cobra.Command{
 	Long:  "This command retrieves information from the target MCU and exits.",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if dw.MCU == nil {
-			return fmt.Errorf("Failed to detect MCU")
-		}
-
 		f, err := dw.ReadFuses()
 		if err != nil {
 			return err

@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 	"golang.rgm.io/dwtk/debugwire"
 	"golang.rgm.io/dwtk/logger"
@@ -76,6 +78,10 @@ var RootCmd = &cobra.Command{
 		dw, err = debugwire.New(serialPort, baudrate)
 		if err != nil {
 			return err
+		}
+
+		if dw.MCU == nil {
+			return fmt.Errorf("Failed to detect MCU")
 		}
 
 		noReset = false

@@ -1,5 +1,6 @@
 name: yatr
-on: push
+on:
+  - push
 
 jobs:
   yatr:
