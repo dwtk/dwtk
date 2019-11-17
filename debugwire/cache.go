@@ -1,6 +1,9 @@
 package debugwire
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
 type Cached struct {
 	dw        *DebugWire
@@ -36,18 +39,24 @@ func (dw *DebugWire) Cache() (*Cached, error) {
 	return rv, nil
 }
 
-func (c *Cached) Restore() error {
-	sr := []byte{
-		byte(c.SP), byte(c.SP >> 8),
-		c.SREG,
-	}
-	if err := c.dw.WriteSRAM(0x5d, sr); err != nil {
-		return err
-	}
+func (c *Cached) Restore() {
+	rv := func() error {
+		sr := []byte{
+			byte(c.SP), byte(c.SP >> 8),
+			c.SREG,
+		}
+		if err := c.dw.WriteSRAM(0x5d, sr); err != nil {
+			return err
+		}
 
-	if err := c.dw.WriteRegisters(0, c.Registers[:]); err != nil {
-		return err
-	}
+		if err := c.dw.WriteRegisters(0, c.Registers[:]); err != nil {
+			return err
+		}
 
-	return c.dw.SetPC(c.PC)
+		return c.dw.SetPC(c.PC)
+	}()
+
+	if rv != nil {
+		fmt.Fprintf(os.Stderr, "Error: debugwire: cache: %s\n")
+	}
 }
