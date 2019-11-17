@@ -7,6 +7,7 @@ import (
 func main() {
 	cmd.RootCmd.AddCommand(
 		cmd.DisableCmd,
+		cmd.DumpCmd,
 		cmd.FlashCmd,
 		cmd.GDBServerCmd,
 		cmd.InfoCmd,

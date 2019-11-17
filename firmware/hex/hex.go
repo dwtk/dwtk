@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/hex"
 	"fmt"
+	"io/ioutil"
 	"os"
 )
 
@@ -58,7 +59,7 @@ func Parse(path string) ([]byte, error) {
 		for _, i := range b[:len(b)-1] {
 			calculated += i
 		}
-		if calculated+expected == 0xff {
+		if uint16(calculated)+uint16(expected) != 0x0100 {
 			return nil, &parseError{fmt.Sprintf("firmware: hex: bad checksum for line %d", line)}
 		}
 
@@ -97,4 +98,32 @@ func Parse(path string) ([]byte, error) {
 	}
 
 	return rv, nil
+}
+
+func Dump(path string, data []byte) error {
+	rv := []byte{}
+
+	for i := uint16(0); i < uint16(len(data)); i += 16 {
+		end := i + 16
+		if end > uint16(len(data)) {
+			end = uint16(len(data))
+		}
+
+		d := data[i:end]
+		b := append([]byte{byte(len(d)), byte(i >> 8), byte(i), 0}, d...)
+
+		// not using hex.Encode because we want upper case
+		chk := byte(0)
+		rv = append(rv, ':')
+		for _, j := range b {
+			chk += j
+			rv = append(rv, []byte(fmt.Sprintf("%02X", j))...)
+		}
+
+		rv = append(rv, []byte(fmt.Sprintf("%02X\n", byte(256-uint16(chk))))...)
+	}
+
+	rv = append(rv, ':', '0', '0', '0', '0', '0', '0', '0', '1', 'F', 'F')
+
+	return ioutil.WriteFile(path, rv, 0666)
 }

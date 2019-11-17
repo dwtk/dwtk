@@ -31,3 +31,7 @@ func Parse(path string) ([]byte, error) {
 
 	return nil, fmt.Errorf("firmware: failed to detect firmware file format: %s", path)
 }
+
+func Dump(path string, data []byte) error {
+	return hex.Dump(path, data)
+}

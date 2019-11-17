@@ -60,3 +60,11 @@ func (m *MCU) PrepareFirmware(data []byte) (map[uint16][]byte, error) {
 
 	return rv, nil
 }
+
+func (m *MCU) NumFlashPages() (uint16, error) {
+	if m.FlashSize%m.FlashPageSize != 0 {
+		return 0, fmt.Errorf("avr: invalid flash size: 0x%04x", m.FlashSize)
+	}
+
+	return m.FlashSize / m.FlashPageSize, nil
+}
