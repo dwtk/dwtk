@@ -40,6 +40,9 @@ func ListenAndServe(addr string, dw *debugwire.DebugWire) error {
 
 	for {
 		if err := handlePacket(dw, conn); err != nil {
+			if err.(*detachErr) != nil {
+				return nil
+			}
 			return err
 		}
 	}

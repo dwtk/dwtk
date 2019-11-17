@@ -10,6 +10,12 @@ import (
 	"golang.rgm.io/dwtk/debugwire"
 )
 
+type detachErr struct{}
+
+func (d *detachErr) Error() string {
+	return ""
+}
+
 func handleCommand(dw *debugwire.DebugWire, conn net.Conn, cmd []byte) error {
 	if len(cmd) == 0 {
 		return fmt.Errorf("gdbserver: commands: empty command")
@@ -157,6 +163,12 @@ func handleCommand(dw *debugwire.DebugWire, conn net.Conn, cmd []byte) error {
 		default:
 			return writePacket(conn, []byte("E01"))
 		}
+
+	case 'D':
+		if err := writePacket(conn, []byte("OK")); err != nil {
+			return err
+		}
+		return &detachErr{}
 
 	case '?':
 		return writePacket(conn, []byte("S00"))
