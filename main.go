@@ -12,6 +12,7 @@ func main() {
 		cmd.GDBServerCmd,
 		cmd.InfoCmd,
 		cmd.ResetCmd,
+		cmd.VerifyCmd,
 	)
 	cmd.RootCmd.Execute()
 }
