@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 
-	"golang.rgm.io/dwtk/avr"
 	"golang.rgm.io/dwtk/debugwire"
 )
 
@@ -116,9 +115,13 @@ func handleCommand(dw *debugwire.DebugWire, conn net.Conn, cmd []byte) error {
 		if err != nil {
 			return err
 		}
+
 		k, err := strconv.ParseUint(p[2], 16, 8)
 		if err != nil {
 			return err
+		}
+		if k != 2 {
+			return fmt.Errorf("gdbserver: commands: invalid breakpoint size: %d", k)
 		}
 
 		switch p[0][0] {
@@ -129,39 +132,26 @@ func handleCommand(dw *debugwire.DebugWire, conn net.Conn, cmd []byte) error {
 			}
 			defer cache.Restore()
 
-			addr := uint16(a)
 			if add {
-				f := make([]byte, 2)
-				if err := dw.ReadFlash(addr, f); err != nil {
-					return err
-				}
-				dw.SwBreakpoints[addr] = (uint16(f[1]) << 8) | uint16(f[0])
-				if err := dw.WriteFlashWord(addr, avr.BREAK()); err != nil {
-					// FIXME: try to recover other breakpoints
-					return err
-				}
+				err = dw.SetSwBreakpoint(uint16(a))
 			} else {
-				bp, ok := dw.SwBreakpoints[addr]
-				if ok {
-					if err := dw.WriteFlashWord(addr, bp); err != nil {
-						return err
-					}
-					delete(dw.SwBreakpoints, addr)
-				}
+				err = dw.ClearSwBreakpoint(uint16(a))
 			}
+			if err != nil {
+				return err
+			}
+
 			return writePacket(conn, []byte("OK"))
 
 		case '1':
 			if add {
-				if dw.HwBreakpointSet {
+				if !dw.SetHwBreakpoint(uint16(a)) {
 					return writePacket(conn, []byte("E01"))
 				}
-				dw.HwBreakpointSet = true
-				dw.HwBreakpoint = uint16(a) / uint16(k)
 			} else {
-				dw.HwBreakpointSet = false
-				dw.HwBreakpoint = 0
+				dw.ClearHwBreakpoint()
 			}
+
 			return writePacket(conn, []byte("OK"))
 
 		default:

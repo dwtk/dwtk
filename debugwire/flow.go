@@ -26,8 +26,9 @@ func (dw *DebugWire) Step() error {
 func (dw *DebugWire) Continue() error {
 	c := []byte{}
 	t := byte(0x60)
-	if dw.HwBreakpointSet {
-		c = append(c, 0xd1, byte(dw.HwBreakpoint>>8), byte(dw.HwBreakpoint))
+	if dw.hwBreakpointSet {
+		bp := dw.hwBreakpoint / 2
+		c = append(c, 0xd1, byte(bp>>8), byte(bp))
 		t = 0x61
 	}
 	if dw.Timers {

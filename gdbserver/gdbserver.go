@@ -32,6 +32,12 @@ func ListenAndServe(addr string, dw *debugwire.DebugWire) error {
 		return err
 	}
 
+	defer func() {
+		if err := dw.ClearSwBreakpoints(); err != nil {
+			fmt.Fprintf(os.Stderr, "Error: failed to clear software breakpoints: %s\n", err)
+		}
+	}()
+
 	for {
 		if err := handlePacket(dw, conn); err != nil {
 			return err
