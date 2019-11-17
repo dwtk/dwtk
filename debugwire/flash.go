@@ -8,9 +8,17 @@ import (
 
 func (dw *DebugWire) WriteFlashPage(start uint16, b []byte) error {
 	if uint16(len(b)) != dw.MCU.FlashPageSize {
-		return fmt.Errorf("debugwire: flash page size, must be 0x%04x for %s",
+		return fmt.Errorf("debugwire: flash: page size must be 0x%04x for %s",
 			dw.MCU.FlashPageSize,
 			dw.MCU.Name,
+		)
+	}
+
+	if start+dw.MCU.FlashPageSize > dw.MCU.FlashSize {
+		return fmt.Errorf("debugwire: flash: writing out of flash space: 0x%04x + 0x%04x > 0x%04x",
+			start,
+			dw.MCU.FlashPageSize,
+			dw.MCU.FlashSize,
 		)
 	}
 
@@ -103,6 +111,14 @@ func (dw *DebugWire) WriteFlashWord(start uint16, inst uint16) error {
 }
 
 func (dw *DebugWire) ReadFlash(start uint16, b []byte) error {
+	if start+uint16(len(b)) > dw.MCU.FlashSize {
+		return fmt.Errorf("debugwire: flash: reading out of flash space: 0x%04x + 0x%04x > 0x%04x",
+			start,
+			len(b),
+			dw.MCU.FlashSize,
+		)
+	}
+
 	c := []byte{
 		byte(start), byte(start >> 8), // Z
 	}
