@@ -14,6 +14,13 @@ func ADIW(reg byte, val uint16) uint16 {
 	return op | kh | kl | de
 }
 
+func BREAK() uint16 {
+	// https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_BREAK.html
+	// 1001 0101 1001 1000
+	op := uint16(0b1001010110011000)
+	return op
+}
+
 func IN(addr byte, reg byte) uint16 {
 	// https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_IN.html
 	// opcode: 1011 0AAd dddd AAAA

@@ -13,7 +13,9 @@ type DebugWire struct {
 
 	HwBreakpoint    uint16
 	HwBreakpointSet bool
-	Timers          bool
+	SwBreakpoints   map[uint16]uint16
+
+	Timers bool
 
 	afterBreak bool
 }
@@ -27,6 +29,7 @@ func New(portDevice string, baudrate uint32) (*DebugWire, error) {
 	rv := &DebugWire{
 		Port:            u,
 		HwBreakpointSet: false,
+		SwBreakpoints:   make(map[uint16]uint16, 1),
 		Timers:          true,
 		afterBreak:      false,
 	}

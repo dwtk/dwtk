@@ -44,7 +44,7 @@ func wait(dw *debugwire.DebugWire, conn net.Conn) (bool, error) {
 	if r == 0 {
 		return false, fmt.Errorf("gdbserver: wait: failed select, no data")
 	}
-	if fds.IsSet(dw.Port.Fd) && dw.HwBreakpointSet {
+	if fds.IsSet(dw.Port.Fd) {
 		return false, dw.RecvBreak()
 	}
 

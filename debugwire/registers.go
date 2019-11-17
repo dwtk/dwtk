@@ -26,6 +26,7 @@ func (dw *DebugWire) ReadRegisters(start byte, b []byte) error {
 }
 
 func (dw *DebugWire) SetPC(b uint16) error {
+	dw.afterBreak = false
 	b /= 2
 	c := []byte{
 		0xd0, byte(b >> 8), byte(b),

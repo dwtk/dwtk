@@ -112,6 +112,8 @@ func SendBreak(fd int) (byte, error) {
 }
 
 func RecvBreak(fd int) (byte, error) {
+	logger.Debug.Print("< break")
+
 	var c [1]byte
 
 	for {

@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"golang.rgm.io/dwtk/avr"
 	"golang.rgm.io/dwtk/debugwire"
 )
 
@@ -121,6 +122,35 @@ func handleCommand(dw *debugwire.DebugWire, conn net.Conn, cmd []byte) error {
 		}
 
 		switch p[0][0] {
+		case '0':
+			cache, err := dw.Cache()
+			if err != nil {
+				return err
+			}
+			defer cache.Restore()
+
+			addr := uint16(a)
+			if add {
+				f := make([]byte, 2)
+				if err := dw.ReadFlash(addr, f); err != nil {
+					return err
+				}
+				dw.SwBreakpoints[addr] = (uint16(f[1]) << 8) | uint16(f[0])
+				if err := dw.WriteFlashWord(addr, avr.BREAK()); err != nil {
+					// FIXME: try to recover other breakpoints
+					return err
+				}
+			} else {
+				bp, ok := dw.SwBreakpoints[addr]
+				if ok {
+					if err := dw.WriteFlashWord(addr, bp); err != nil {
+						return err
+					}
+					delete(dw.SwBreakpoints, addr)
+				}
+			}
+			return writePacket(conn, []byte("OK"))
+
 		case '1':
 			if add {
 				if dw.HwBreakpointSet {
