@@ -57,6 +57,6 @@ func (c *Cached) Restore() {
 	}()
 
 	if rv != nil {
-		fmt.Fprintf(os.Stderr, "Error: debugwire: cache: %s\n")
+		fmt.Fprintf(os.Stderr, "Error: debugwire: cache: %s\n", rv)
 	}
 }
