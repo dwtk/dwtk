@@ -1,6 +1,7 @@
 package gdbserver
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"os"
@@ -20,11 +21,23 @@ func ListenAndServe(addr string, dw *debugwire.DebugWire) error {
 	// an usual socket server would loop here, accept multiple connections
 	// and handle them in goroutines, but we just want to handle the first
 	// incoming request.
-	conn, err := ln.Accept()
+	c, err := ln.Accept()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
+	defer c.Close()
+
+	conn, err := newConn(c)
+	if err != nil {
+		return err
+	}
+
+	sigInt := signalChannel()
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		<-sigInt
+		cancel()
+	}()
 
 	fmt.Fprintf(os.Stderr, " * Connection accepted from %s\n", conn.RemoteAddr().String())
 
@@ -32,20 +45,43 @@ func ListenAndServe(addr string, dw *debugwire.DebugWire) error {
 		return err
 	}
 
-	defer func() {
-		if err := dw.ClearSwBreakpoints(); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: failed to clear software breakpoints: %s\n", err)
-		}
-	}()
+	var errg error
 
 	for {
-		if err := handlePacket(dw, conn); err != nil {
+		exit := false
+		select {
+		case <-ctx.Done():
+			exit = true
+		default:
+		}
+		if exit {
+			break
+		}
+
+		if err := handlePacket(ctx, dw, conn); err != nil {
 			if _, ok := err.(*detachErr); ok {
-				return nil
+				break
 			}
-			return err
+			errg = err
+			break
 		}
 	}
 
-	return nil
+	if dw.HasSwBreakpoints() {
+		if err := dw.Reset(); err != nil {
+			if errg == nil {
+				return err
+			}
+			return fmt.Errorf("%s\n%s", errg, err)
+		}
+
+		if err := dw.ClearSwBreakpoints(); err != nil {
+			if errg == nil {
+				return fmt.Errorf("gdbserver: failed to clear software breakpoints: %s", err)
+			}
+			return fmt.Errorf("%s\ngdbserver: failed to clear software breakpoints: %s", errg, err)
+		}
+	}
+
+	return errg
 }

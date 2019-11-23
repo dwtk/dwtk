@@ -1,9 +1,9 @@
 package gdbserver
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
-	"net"
 
 	"golang.rgm.io/dwtk/debugwire"
 	"golang.rgm.io/dwtk/logger"
@@ -19,7 +19,7 @@ const (
 	packetChecksum2
 )
 
-func handlePacket(dw *debugwire.DebugWire, conn net.Conn) error {
+func handlePacket(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn) error {
 	var (
 		cmd  []byte
 		cmdl []byte
@@ -29,15 +29,23 @@ func handlePacket(dw *debugwire.DebugWire, conn net.Conn) error {
 
 	state := packetAck
 	for {
-		d := make([]byte, 1)
-		n, err := conn.Read(d)
+		if state == packetAck {
+			select {
+			case <-ctx.Done():
+				return nil
+			default:
+			}
+		}
+
+		b, err := conn.readByte(ctx)
 		if err != nil {
 			return err
 		}
-		if n != 1 {
-			return fmt.Errorf("gdbserver: packet: failed to read byte from client socket")
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
 		}
-		b := d[0]
 
 		if b == 0x03 {
 			logger.Debug.Println("$< ctrl-c")
@@ -57,7 +65,7 @@ func handlePacket(dw *debugwire.DebugWire, conn net.Conn) error {
 			if b == '-' {
 				logger.Debug.Println("$< nack")
 				if cmdl != nil {
-					if err := handleCommand(dw, conn, cmdl); err != nil {
+					if err := handleCommand(ctx, dw, conn, cmdl); err != nil {
 						return err
 					}
 				}
@@ -111,7 +119,7 @@ func handlePacket(dw *debugwire.DebugWire, conn net.Conn) error {
 			}
 
 			cmdl = cmd
-			if err := handleCommand(dw, conn, cmd); err != nil {
+			if err := handleCommand(ctx, dw, conn, cmd); err != nil {
 				return err
 			}
 		}
@@ -120,7 +128,7 @@ func handlePacket(dw *debugwire.DebugWire, conn net.Conn) error {
 	return nil
 }
 
-func writePacket(conn net.Conn, b []byte) error {
+func writePacket(conn *tcpConn, b []byte) error {
 	chk := byte(0)
 	for i := 0; i < len(b); i++ {
 		chk += b[i]

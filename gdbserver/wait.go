@@ -1,52 +1,47 @@
 package gdbserver
 
 import (
+	"context"
 	"fmt"
-	"net"
+	"os"
 
-	"golang.org/x/sys/unix"
 	"golang.rgm.io/dwtk/debugwire"
 )
 
-func wait(dw *debugwire.DebugWire, conn net.Conn) (bool, error) {
-	fds := &unix.FdSet{}
-	fds.Zero()
+func wait(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn) ([]byte, error) {
+	nctx, cancel := context.WithCancel(ctx)
 
-	nfds := 0
-	if dw.Port.Fd >= 0 {
-		fds.Set(dw.Port.Fd)
-		nfds = dw.Port.Fd
-	}
+	sigGdb := make(chan bool)
+	sigDw := make(chan bool)
 
-	c := conn.(*net.TCPConn)
-	if c == nil {
-		return false, fmt.Errorf("gdbserver: wait: invalid tcp connection")
-	}
-	f, err := c.File()
-	if err != nil {
-		return false, err
-	}
-	fd := int(f.Fd())
-	if fd >= 0 {
-		fds.Set(fd)
-		if fd > nfds {
-			nfds = fd
+	go func() {
+		if err := waitForFd(nctx, conn.Fd, sigGdb); err != nil {
+			fmt.Fprintf(os.Stderr, "error: gdbserver: gdb: %s\n", err)
 		}
+	}()
+
+	go func() {
+		if err := waitForFd(nctx, dw.Port.Fd, sigDw); err != nil {
+			fmt.Fprintf(os.Stderr, "error: gdbserver: debugwire: %s\n", err)
+		}
+	}()
+
+	var (
+		err    error
+		packet []byte
+	)
+
+	select {
+	case <-ctx.Done():
+		packet = []byte("S00")
+	case <-sigGdb:
+		cancel()
+		packet = []byte("S02")
+	case <-sigDw:
+		cancel()
+		packet = []byte("S05")
+		err = dw.RecvBreak()
 	}
 
-	r, err := unix.Select(nfds+1, fds, nil, nil, nil)
-	if err != nil {
-		return false, err
-	}
-	if r == -1 {
-		return false, fmt.Errorf("gdbserver: wait: failed select")
-	}
-	if r == 0 {
-		return false, fmt.Errorf("gdbserver: wait: failed select, no data")
-	}
-	if fds.IsSet(dw.Port.Fd) {
-		return false, dw.RecvBreak()
-	}
-
-	return true, nil
+	return packet, err
 }

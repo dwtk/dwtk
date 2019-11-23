@@ -60,3 +60,7 @@ func (dw *DebugWire) ClearSwBreakpoints() error {
 	}
 	return nil
 }
+
+func (dw *DebugWire) HasSwBreakpoints() bool {
+	return len(dw.swBreakpoints) > 0
+}

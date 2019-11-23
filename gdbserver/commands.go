@@ -1,9 +1,9 @@
 package gdbserver
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
-	"net"
 	"strconv"
 	"strings"
 
@@ -16,7 +16,7 @@ func (d *detachErr) Error() string {
 	return ""
 }
 
-func handleCommand(dw *debugwire.DebugWire, conn net.Conn, cmd []byte) error {
+func handleCommand(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn, cmd []byte) error {
 	if len(cmd) == 0 {
 		return fmt.Errorf("gdbserver: commands: empty command")
 	}
@@ -97,14 +97,11 @@ func handleCommand(dw *debugwire.DebugWire, conn net.Conn, cmd []byte) error {
 		if err := dw.Continue(); err != nil {
 			return err
 		}
-		interrupt, err := wait(dw, conn)
+		rv, err := wait(ctx, dw, conn)
 		if err != nil {
 			return err
 		}
-		if interrupt {
-			return writePacket(conn, []byte("S02"))
-		}
-		return writePacket(conn, []byte("S05"))
+		return writePacket(conn, rv)
 
 	case 'Z':
 		add = true
