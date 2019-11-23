@@ -57,7 +57,7 @@ func Read(fd int, p []byte) error {
 			return err
 		}
 		if c == 0 {
-			return fmt.Errorf("usbserial: got unexpected EOF")
+			return fmt.Errorf("usbserial: read: got unexpected EOF")
 		}
 		n += c
 	}
@@ -75,7 +75,7 @@ func Write(fd int, p []byte) error {
 			return err
 		}
 		if c == 0 {
-			return fmt.Errorf("usbserial: got unexpected EOF")
+			return fmt.Errorf("usbserial: write: got unexpected EOF")
 		}
 		n += c
 	}
