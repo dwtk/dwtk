@@ -58,16 +58,16 @@ func (u *UsbSerial) Read(p []byte) error {
 }
 
 func (u *UsbSerial) ReadByte() (byte, error) {
-	var b [1]byte
-	if err := u.Read(b[:]); err != nil {
+	b := make([]byte, 1)
+	if err := u.Read(b); err != nil {
 		return 0, err
 	}
 	return b[0], nil
 }
 
 func (u *UsbSerial) ReadWord() (uint16, error) {
-	var b [2]byte
-	if err := u.Read(b[:]); err != nil {
+	b := make([]byte, 2)
+	if err := u.Read(b); err != nil {
 		return 0, err
 	}
 	return (uint16(b[0]) << 8) | uint16(b[1]), nil

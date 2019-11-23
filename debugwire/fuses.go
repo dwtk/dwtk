@@ -34,8 +34,8 @@ func (dw *DebugWire) ReadFuses() ([]byte, error) {
 			return nil, err
 		}
 
-		d := [1]byte{}
-		if err := dw.ReadRegisters(0, d[:]); err != nil {
+		d := make([]byte, 1)
+		if err := dw.ReadRegisters(0, d); err != nil {
 			return nil, err
 		}
 

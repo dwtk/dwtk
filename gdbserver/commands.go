@@ -37,7 +37,7 @@ func handleCommand(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn, 
 		defer cache.Restore()
 
 		b := append(
-			cache.Registers[:],
+			cache.Registers,
 			cache.SREG,
 			byte(cache.SP), byte(cache.SP>>8),
 			byte(cache.PC), byte((cache.PC)>>8), 0, 0,

@@ -7,7 +7,7 @@ import (
 
 type Cached struct {
 	dw        *DebugWire
-	Registers [32]byte
+	Registers []byte
 	PC        uint16
 	SP        uint16
 	SREG      byte
@@ -15,15 +15,17 @@ type Cached struct {
 
 func (dw *DebugWire) Cache() (*Cached, error) {
 	var err error
-	rv := &Cached{dw: dw}
+	rv := &Cached{
+		dw:        dw,
+		Registers: make([]byte, 32),
+	}
 
 	rv.PC, err = dw.GetPC()
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("\nPC: 0x%04x\n\n", rv.PC)
 
-	if err = dw.ReadRegisters(0, rv.Registers[:]); err != nil {
+	if err = dw.ReadRegisters(0, rv.Registers); err != nil {
 		return nil, err
 	}
 
@@ -49,7 +51,7 @@ func (c *Cached) Restore() {
 			return err
 		}
 
-		if err := c.dw.WriteRegisters(0, c.Registers[:]); err != nil {
+		if err := c.dw.WriteRegisters(0, c.Registers); err != nil {
 			return err
 		}
 

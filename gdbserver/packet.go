@@ -24,7 +24,7 @@ func handlePacket(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn) e
 		cmd  []byte
 		cmdl []byte
 		chk  byte
-		chkr [2]byte
+		chkr []byte = make([]byte, 2)
 	)
 
 	state := packetAck
@@ -99,7 +99,7 @@ func handlePacket(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn) e
 			state = packetAck
 
 			chkg := make([]byte, 1)
-			if _, err := hex.Decode(chkg, chkr[:]); err != nil {
+			if _, err := hex.Decode(chkg, chkr); err != nil {
 				return err
 			}
 

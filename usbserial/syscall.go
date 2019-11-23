@@ -114,10 +114,9 @@ func SendBreak(fd int) (byte, error) {
 func RecvBreak(fd int) (byte, error) {
 	logger.Debug.Print("< break")
 
-	var c [1]byte
-
+	c := make([]byte, 1)
 	for {
-		if err := Read(fd, c[:]); err != nil {
+		if err := Read(fd, c); err != nil {
 			return 0, err
 		}
 		if c[0] != 0x00 && c[0] != 0xff {
