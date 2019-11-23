@@ -29,6 +29,29 @@ func handleCommand(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn, 
 			return writePacket(conn, []byte{'1'})
 		}
 
+	case 'G':
+		cache, err := dw.Cache()
+		if err != nil {
+			return err
+		}
+		defer cache.Restore()
+
+		b := make([]byte, hex.DecodedLen(len(cmd[1:])))
+		n, err := hex.Decode(b, cmd[1:])
+		if err != nil {
+			return err
+		}
+		if n != 39 {
+			return fmt.Errorf("gdbserver: commands: malformed register write request: %s", cmd)
+		}
+
+		cache.Registers = b[0:32]
+		cache.SREG = b[32]
+		cache.SP = uint16(b[33]) | uint16(b[34]<<8)
+		cache.PC = uint16(b[35]) | uint16(b[36]<<8)
+
+		return writePacket(conn, []byte("OK"))
+
 	case 'g':
 		cache, err := dw.Cache()
 		if err != nil {
