@@ -105,13 +105,27 @@ func (dw *DebugWire) WriteFlash(start uint16, b []byte) error {
 	endAddr := start + uint16(len(b))
 	endPage := (endAddr - 1) / dw.MCU.FlashPageSize
 
-	k := 0
+	pages := make(map[int][]byte)
+
 	for i := startPage; i <= endPage; i += 1 {
 		addr := i * dw.MCU.FlashPageSize
 		page := make([]byte, dw.MCU.FlashPageSize)
+
 		if err := dw.ReadFlash(addr, page); err != nil {
 			return err
 		}
+
+		pages[int(i)] = page
+	}
+
+	k := 0
+	for i := startPage; i <= endPage; i += 1 {
+		addr := i * dw.MCU.FlashPageSize
+		page, ok := pages[int(i)]
+		if !ok {
+			return fmt.Errorf("debugwire: flash: bad page split")
+		}
+
 		pStart := uint16(0)
 		if start >= addr {
 			pStart = start - addr
