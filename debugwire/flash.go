@@ -92,22 +92,12 @@ func (dw *DebugWire) WriteFlashPage(start uint16, b []byte) error {
 	return dw.SendBreak()
 }
 
-func (dw *DebugWire) WriteFlashWord(start uint16, inst uint16) error {
-	// this is the bare minimum required to implement software breakpoints
-	// we won't implement a generic WriteFlash for now, because handling
-	// writing to multiple pages isn't trivial
-
-	pageNum := start / dw.MCU.FlashPageSize
-	pageStart := pageNum * dw.MCU.FlashPageSize
-	page := make([]byte, dw.MCU.FlashPageSize)
-	if err := dw.ReadFlash(pageStart, page); err != nil {
-		return err
+func (dw *DebugWire) WriteFlashInstruction(start uint16, inst uint16) error {
+	c := []byte{
+		byte(inst),
+		byte(inst >> 8),
 	}
-
-	page[start-pageStart] = byte(inst)
-	page[start-pageStart+1] = byte(inst >> 8)
-
-	return dw.WriteFlashPage(pageStart, page)
+	return dw.WriteFlash(start, c)
 }
 
 func (dw *DebugWire) WriteFlash(start uint16, b []byte) error {

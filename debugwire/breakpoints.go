@@ -29,7 +29,7 @@ func (dw *DebugWire) SetSwBreakpoint(addr uint16) error {
 	}
 
 	dw.swBreakpoints[addr] = (uint16(f[1]) << 8) | uint16(f[0])
-	return dw.WriteFlashWord(addr, avr.BREAK())
+	return dw.WriteFlashInstruction(addr, avr.BREAK())
 }
 
 func (dw *DebugWire) ClearSwBreakpoint(addr uint16) error {
@@ -38,7 +38,7 @@ func (dw *DebugWire) ClearSwBreakpoint(addr uint16) error {
 		return nil
 	}
 
-	if err := dw.WriteFlashWord(addr, bp); err != nil {
+	if err := dw.WriteFlashInstruction(addr, bp); err != nil {
 		return err
 	}
 
