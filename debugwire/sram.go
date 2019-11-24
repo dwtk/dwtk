@@ -8,7 +8,7 @@ func (dw *DebugWire) WriteSRAM(start uint16, b []byte) error {
 		return err
 	}
 
-	l := uint16(len(b) * 2)
+	l := uint16((len(b) * 2) + 1)
 	c = []byte{
 		0x66,
 		0xd0, 0x00, 0x01,

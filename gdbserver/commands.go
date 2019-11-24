@@ -69,6 +69,58 @@ func handleCommand(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn, 
 		hex.Encode(d, b)
 		return writePacket(conn, d)
 
+	case 'M':
+		cache, err := dw.Cache()
+		if err != nil {
+			return err
+		}
+		defer cache.Restore()
+
+		h := strings.Split(scmd[1:], ":")
+		if len(h) != 2 {
+			writePacket(conn, []byte("E01"))
+			return fmt.Errorf("gdbserver: commands: malformed memory write request: %s", cmd)
+		}
+
+		p := strings.Split(h[0], ",")
+		if len(p) != 2 {
+			writePacket(conn, []byte("E01"))
+			return fmt.Errorf("gdbserver: commands: malformed memory write request: %s", cmd)
+		}
+
+		a, err := strconv.ParseUint(p[0], 16, 32)
+		if err != nil {
+			return err
+		}
+
+		c, err := strconv.ParseUint(p[1], 16, 16)
+		if err != nil {
+			return err
+		}
+
+		b, err := hex.DecodeString(h[1])
+		if err != nil {
+			return err
+		}
+		if uint64(len(b)) != c {
+			return fmt.Errorf("gdbserver: commands: malformed memory write request: %s", cmd)
+		}
+
+		if a < 0x800000 {
+			if err := dw.WriteFlash(uint16(a), b); err != nil {
+				return err
+			}
+		} else if a < 0x810000 {
+			if err := dw.WriteSRAM(uint16(a), b); err != nil {
+				return err
+			}
+		} else { // eeprom
+			writePacket(conn, []byte("E01"))
+			return nil
+		}
+
+		return writePacket(conn, []byte("OK"))
+
 	case 'm':
 		cache, err := dw.Cache()
 		if err != nil {
