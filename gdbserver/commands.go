@@ -3,6 +3,7 @@ package gdbserver
 import (
 	"context"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -17,6 +18,22 @@ func (d *detachErr) Error() string {
 }
 
 func handleCommand(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn, cmd []byte) error {
+	notifyGdb := func(err error, rsp []byte) error {
+		errs := []string{}
+		if err != nil {
+			errs = append(errs, err.Error())
+			if e := writePacket(conn, rsp); e != nil {
+				errs = append(errs, e.Error())
+			}
+		}
+
+		if len(errs) > 0 {
+			return errors.New(strings.Join(errs, "; "))
+		}
+
+		return nil
+	}
+
 	if len(cmd) == 0 {
 		return fmt.Errorf("gdbserver: commands: empty command")
 	}
@@ -32,17 +49,20 @@ func handleCommand(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn, 
 	case 'G':
 		cache, err := dw.Cache()
 		if err != nil {
-			return err
+			return notifyGdb(err, []byte("E01"))
 		}
 		defer cache.Restore()
 
 		b := make([]byte, hex.DecodedLen(len(cmd[1:])))
 		n, err := hex.Decode(b, cmd[1:])
 		if err != nil {
-			return err
+			return notifyGdb(err, []byte("E01"))
 		}
 		if n != 39 {
-			return fmt.Errorf("gdbserver: commands: malformed register write request: %s", cmd)
+			return notifyGdb(
+				fmt.Errorf("gdbserver: commands: malformed register write request: %s", cmd),
+				[]byte("E01"),
+			)
 		}
 
 		cache.Registers = b[0:32]
@@ -55,7 +75,7 @@ func handleCommand(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn, 
 	case 'g':
 		cache, err := dw.Cache()
 		if err != nil {
-			return err
+			return notifyGdb(err, []byte("E01"))
 		}
 		defer cache.Restore()
 
@@ -72,51 +92,58 @@ func handleCommand(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn, 
 	case 'M':
 		cache, err := dw.Cache()
 		if err != nil {
-			return err
+			return notifyGdb(err, []byte("E01"))
 		}
 		defer cache.Restore()
 
 		h := strings.Split(scmd[1:], ":")
 		if len(h) != 2 {
-			writePacket(conn, []byte("E01"))
-			return fmt.Errorf("gdbserver: commands: malformed memory write request: %s", cmd)
+			return notifyGdb(
+				fmt.Errorf("gdbserver: commands: malformed memory write request: %s", cmd),
+				[]byte("E01"),
+			)
+
 		}
 
 		p := strings.Split(h[0], ",")
 		if len(p) != 2 {
-			writePacket(conn, []byte("E01"))
-			return fmt.Errorf("gdbserver: commands: malformed memory write request: %s", cmd)
+			return notifyGdb(
+				fmt.Errorf("gdbserver: commands: malformed memory write request: %s", cmd),
+				[]byte("E01"),
+			)
 		}
 
 		a, err := strconv.ParseUint(p[0], 16, 32)
 		if err != nil {
-			return err
+			return notifyGdb(err, []byte("E01"))
 		}
 
 		c, err := strconv.ParseUint(p[1], 16, 16)
 		if err != nil {
-			return err
+			return notifyGdb(err, []byte("E01"))
 		}
 
 		b, err := hex.DecodeString(h[1])
 		if err != nil {
-			return err
+			return notifyGdb(err, []byte("E01"))
 		}
 		if uint64(len(b)) != c {
-			return fmt.Errorf("gdbserver: commands: malformed memory write request: %s", cmd)
+			return notifyGdb(
+				fmt.Errorf("gdbserver: commands: malformed memory write request: %s", cmd),
+				[]byte("E01"),
+			)
 		}
 
 		if a < 0x800000 {
 			if err := dw.WriteFlash(uint16(a), b); err != nil {
-				return err
+				return notifyGdb(err, []byte("E01"))
 			}
 		} else if a < 0x810000 {
 			if err := dw.WriteSRAM(uint16(a), b); err != nil {
-				return err
+				return notifyGdb(err, []byte("E01"))
 			}
 		} else { // eeprom
-			writePacket(conn, []byte("E01"))
-			return nil
+			return writePacket(conn, []byte("E01"))
 		}
 
 		return writePacket(conn, []byte("OK"))
@@ -124,38 +151,39 @@ func handleCommand(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn, 
 	case 'm':
 		cache, err := dw.Cache()
 		if err != nil {
-			return err
+			return notifyGdb(err, []byte("E01"))
 		}
 		defer cache.Restore()
 
 		p := strings.Split(scmd[1:], ",")
 		if len(p) != 2 {
-			writePacket(conn, []byte("E01"))
-			return fmt.Errorf("gdbserver: commands: malformed memory read request: %s", cmd)
+			return notifyGdb(
+				fmt.Errorf("gdbserver: commands: malformed memory read request: %s", cmd),
+				[]byte("E01"),
+			)
 		}
 
 		a, err := strconv.ParseUint(p[0], 16, 32)
 		if err != nil {
-			return err
+			return notifyGdb(err, []byte("E01"))
 		}
 
 		c, err := strconv.ParseUint(p[1], 16, 16)
 		if err != nil {
-			return err
+			return notifyGdb(err, []byte("E01"))
 		}
 
 		b := make([]byte, c)
 		if a < 0x800000 {
 			if err := dw.ReadFlash(uint16(a), b); err != nil {
-				return err
+				return notifyGdb(err, []byte("E01"))
 			}
 		} else if a < 0x810000 {
 			if err := dw.ReadSRAM(uint16(a), b); err != nil {
-				return err
+				return notifyGdb(err, []byte("E01"))
 			}
 		} else { // eeprom
-			writePacket(conn, []byte("E01"))
-			return nil
+			return writePacket(conn, []byte("E01"))
 		}
 
 		d := make([]byte, hex.EncodedLen(len(b)))
@@ -164,17 +192,17 @@ func handleCommand(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn, 
 
 	case 's':
 		if err := dw.Step(); err != nil {
-			return err
+			return notifyGdb(err, []byte("S00"))
 		}
 		return writePacket(conn, []byte("S05"))
 
 	case 'c':
 		if err := dw.Continue(); err != nil {
-			return err
+			return notifyGdb(err, []byte("S00"))
 		}
 		rv, err := wait(ctx, dw, conn)
 		if err != nil {
-			return err
+			return notifyGdb(err, []byte("S00"))
 		}
 		return writePacket(conn, rv)
 
@@ -185,28 +213,33 @@ func handleCommand(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn, 
 	case 'z':
 		p := strings.Split(scmd[1:], ",")
 		if len(p) != 3 {
-			writePacket(conn, []byte("E01"))
-			return fmt.Errorf("gdbserver: commands: malformed breakpoint request: %s", cmd)
+			return notifyGdb(
+				fmt.Errorf("gdbserver: commands: malformed breakpoint request: %s", cmd),
+				[]byte("E01"),
+			)
 		}
 
 		a, err := strconv.ParseUint(p[1], 16, 16)
 		if err != nil {
-			return err
+			return notifyGdb(err, []byte("E01"))
 		}
 
 		k, err := strconv.ParseUint(p[2], 16, 8)
 		if err != nil {
-			return err
+			return notifyGdb(err, []byte("E01"))
 		}
 		if k != 2 {
-			return fmt.Errorf("gdbserver: commands: invalid breakpoint size: %d", k)
+			return notifyGdb(
+				fmt.Errorf("gdbserver: commands: invalid breakpoint size: %d", k),
+				[]byte("E01"),
+			)
 		}
 
 		switch p[0][0] {
 		case '0':
 			cache, err := dw.Cache()
 			if err != nil {
-				return err
+				return notifyGdb(err, []byte("E01"))
 			}
 			defer cache.Restore()
 
@@ -216,7 +249,7 @@ func handleCommand(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn, 
 				err = dw.ClearSwBreakpoint(uint16(a))
 			}
 			if err != nil {
-				return err
+				return notifyGdb(err, []byte("E01"))
 			}
 
 			return writePacket(conn, []byte("OK"))
@@ -238,12 +271,13 @@ func handleCommand(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn, 
 
 	case 'D':
 		if err := writePacket(conn, []byte("OK")); err != nil {
-			return err
+			return notifyGdb(err, []byte("E01"))
 		}
 		return &detachErr{}
 
 	case '?':
 		return writePacket(conn, []byte("S00"))
 	}
+
 	return writePacket(conn, []byte{})
 }
