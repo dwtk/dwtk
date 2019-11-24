@@ -2,9 +2,11 @@ package gdbserver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"os"
+	"strings"
 
 	"golang.rgm.io/dwtk/debugwire"
 )
@@ -68,18 +70,21 @@ func ListenAndServe(addr string, dw *debugwire.DebugWire) error {
 	}
 
 	if dw.HasSwBreakpoints() {
-		if err := dw.Reset(); err != nil {
-			if errg == nil {
-				return err
-			}
-			return fmt.Errorf("%s\n%s", errg, err)
+		errs := []string{}
+		if errg != nil {
+			errs = append(errs, errg.Error())
 		}
 
-		if err := dw.ClearSwBreakpoints(); err != nil {
-			if errg == nil {
-				return fmt.Errorf("gdbserver: failed to clear software breakpoints: %s", err)
+		if err := dw.Reset(); err != nil {
+			errs = append(errs, err.Error())
+		} else {
+			if err := dw.ClearSwBreakpoints(); err != nil {
+				errs = append(errs, fmt.Sprintf("gdbserver: failed to clear software breakpoints: %s", err))
 			}
-			return fmt.Errorf("%s\ngdbserver: failed to clear software breakpoints: %s", errg, err)
+		}
+
+		if len(errs) > 0 {
+			return errors.New(strings.Join(errs, "\n"))
 		}
 	}
 
