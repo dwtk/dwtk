@@ -71,7 +71,7 @@ func Parse(path string) ([]byte, error) {
 		switch recordType {
 		case 0:
 			if int(count)+5 != len(b) {
-				return nil, &parseError{fmt.Sprintf("firmware: hex: byte count and record lenght don't match for line %d", line)}
+				return nil, &parseError{fmt.Sprintf("firmware: hex: byte count and record length don't match for line %d", line)}
 			}
 			data = b[4 : 4+count]
 		case 1:
