@@ -21,7 +21,7 @@ func wait(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn) ([]byte, 
 	}()
 
 	go func() {
-		if err := waitForFd(nctx, dw.Port.Fd, sigDw); err != nil {
+		if err := dw.Port.Wait(nctx, sigDw); err != nil {
 			fmt.Fprintf(os.Stderr, "error: gdbserver: debugwire: %s\n", err)
 		}
 	}()

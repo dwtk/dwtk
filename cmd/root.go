@@ -6,7 +6,6 @@ import (
 	"github.com/spf13/cobra"
 	"golang.rgm.io/dwtk/debugwire"
 	"golang.rgm.io/dwtk/logger"
-	"golang.rgm.io/dwtk/usbserial"
 	"golang.rgm.io/dwtk/version"
 )
 
@@ -60,7 +59,7 @@ var RootCmd = &cobra.Command{
 
 		if serialPort == "" {
 			var err error
-			serialPort, err = usbserial.GuessPortDevice()
+			serialPort, err = debugwire.GuessDevice()
 			if err != nil {
 				return err
 			}

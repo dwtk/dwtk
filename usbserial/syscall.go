@@ -9,7 +9,7 @@ import (
 	"golang.rgm.io/dwtk/logger"
 )
 
-func Open(portDevice string, baudrate uint32) (int, error) {
+func open(portDevice string, baudrate uint32) (int, error) {
 	fd, err := unix.Open(portDevice, unix.O_RDWR, 0600)
 	if err != nil {
 		return -1, err
@@ -33,7 +33,7 @@ func Open(portDevice string, baudrate uint32) (int, error) {
 
 	time.Sleep(30 * time.Millisecond)
 
-	if err := Flush(fd); err != nil {
+	if err := flush(fd); err != nil {
 		unix.Close(fd)
 		return -1, err
 	}
@@ -41,15 +41,15 @@ func Open(portDevice string, baudrate uint32) (int, error) {
 	return fd, nil
 }
 
-func Close(fd int) error {
+func _close(fd int) error {
 	return unix.Close(fd)
 }
 
-func Flush(fd int) error {
+func flush(fd int) error {
 	return unix.IoctlSetInt(fd, unix.TCFLSH, unix.TCIOFLUSH)
 }
 
-func Read(fd int, p []byte) error {
+func read(fd int, p []byte) error {
 	n := 0
 	for n < len(p) {
 		c, err := unix.Read(fd, p[n:])
@@ -67,7 +67,7 @@ func Read(fd int, p []byte) error {
 	return nil
 }
 
-func Write(fd int, p []byte) error {
+func write(fd int, p []byte) error {
 	n := 0
 	for n < len(p) {
 		c, err := unix.Write(fd, p[n:])
@@ -84,7 +84,7 @@ func Write(fd int, p []byte) error {
 	}
 
 	e := make([]byte, len(p))
-	if err := Read(fd, e); err != nil {
+	if err := read(fd, e); err != nil {
 		return err
 	}
 
@@ -95,28 +95,24 @@ func Write(fd int, p []byte) error {
 	return nil
 }
 
-func SendBreak(fd int) (byte, error) {
+func sendBreak(fd int) error {
 	logger.Debug.Print("> break")
 
 	if err := unix.IoctlSetInt(fd, unix.TIOCSBRK, 0); err != nil {
-		return 0, err
+		return err
 	}
 
 	time.Sleep(15 * time.Millisecond)
 
-	if err := unix.IoctlSetInt(fd, unix.TIOCCBRK, 0); err != nil {
-		return 0, err
-	}
-
-	return RecvBreak(fd)
+	return unix.IoctlSetInt(fd, unix.TIOCCBRK, 0)
 }
 
-func RecvBreak(fd int) (byte, error) {
+func recvBreak(fd int) (byte, error) {
 	logger.Debug.Print("< break")
 
 	c := make([]byte, 1)
 	for {
-		if err := Read(fd, c); err != nil {
+		if err := read(fd, c); err != nil {
 			return 0, err
 		}
 		if c[0] != 0x00 && c[0] != 0xff {

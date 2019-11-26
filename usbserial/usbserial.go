@@ -1,34 +1,36 @@
 package usbserial
 
 import (
+	"context"
 	"sync"
+
+	"golang.rgm.io/dwtk/wait"
 )
 
 type UsbSerial struct {
-	Fd int
-
-	mutex *sync.Mutex
+	fd    int
+	mutex *sync.RWMutex
 	buf   []byte
 }
 
-func New(portDevice string, baudrate uint32) (*UsbSerial, error) {
-	fd, err := Open(portDevice, baudrate)
+func New(device string, baudrate uint32) (*UsbSerial, error) {
+	fd, err := open(device, baudrate)
 	if err != nil {
 		return nil, err
 	}
 
 	return &UsbSerial{
-		Fd:    fd,
-		mutex: &sync.Mutex{},
+		fd:    fd,
+		mutex: &sync.RWMutex{},
 		buf:   []byte{},
 	}, nil
 }
 
 func (u *UsbSerial) Commit() error {
-	u.mutex.Lock()
-	defer u.mutex.Unlock()
+	u.mutex.RLock()
+	defer u.mutex.RUnlock()
 
-	err := Write(u.Fd, u.buf)
+	err := write(u.fd, u.buf)
 	u.buf = []byte{}
 	return err
 }
@@ -38,7 +40,7 @@ func (u *UsbSerial) Close() error {
 		return err
 	}
 
-	return Close(u.Fd)
+	return _close(u.fd)
 }
 
 func (u *UsbSerial) Flush() error {
@@ -46,7 +48,7 @@ func (u *UsbSerial) Flush() error {
 		return err
 	}
 
-	return Flush(u.Fd)
+	return flush(u.fd)
 }
 
 func (u *UsbSerial) Read(p []byte) error {
@@ -54,7 +56,7 @@ func (u *UsbSerial) Read(p []byte) error {
 		return err
 	}
 
-	return Read(u.Fd, p)
+	return read(u.fd, p)
 }
 
 func (u *UsbSerial) ReadByte() (byte, error) {
@@ -81,12 +83,12 @@ func (u *UsbSerial) Write(p []byte) error {
 	return nil
 }
 
-func (u *UsbSerial) SendBreak() (byte, error) {
+func (u *UsbSerial) SendBreak() error {
 	if err := u.Commit(); err != nil {
-		return 0, err
+		return err
 	}
 
-	return SendBreak(u.Fd)
+	return sendBreak(u.fd)
 }
 
 func (u *UsbSerial) RecvBreak() (byte, error) {
@@ -94,5 +96,16 @@ func (u *UsbSerial) RecvBreak() (byte, error) {
 		return 0, err
 	}
 
-	return RecvBreak(u.Fd)
+	return recvBreak(u.fd)
+}
+
+func (u *UsbSerial) Wait(ctx context.Context, c chan bool) error {
+	if err := u.Commit(); err != nil {
+		return err
+	}
+
+	u.mutex.Lock()
+	defer u.mutex.Unlock()
+
+	return wait.WaitForFd(ctx, u.fd, c)
 }

@@ -2,10 +2,29 @@ package debugwire
 
 import (
 	"fmt"
+	"path/filepath"
+	"strings"
 
 	"golang.rgm.io/dwtk/logger"
 	"golang.rgm.io/dwtk/usbserial"
 )
+
+func GuessDevice() (string, error) {
+	matches, err := filepath.Glob("/dev/ttyUSB*")
+	if err != nil {
+		return "", err
+	}
+	if matches == nil {
+		return "", fmt.Errorf("usbserial: no USB serial port found")
+	}
+	if len(matches) > 1 {
+		return "", fmt.Errorf("usbserial: more than one USB serial port found: %s",
+			strings.Join(matches, ", "))
+	}
+
+	logger.Debug.Printf(" * Detected serial port: %s", matches[0])
+	return matches[0], nil
+}
 
 func GuessBaudrate(portDevice string) (uint32, error) {
 	// max supported mcu frequency is 20MHz, there are faster AVRs, but they
@@ -13,18 +32,22 @@ func GuessBaudrate(portDevice string) (uint32, error) {
 	// possible
 	for i := 20; i > 0; i-- {
 		baudrate := uint32((i * 1000000) / 128)
-		fd, err := usbserial.Open(portDevice, baudrate)
+		p, err := usbserial.New(portDevice, baudrate)
 		if err != nil {
 			return 0, err
 		}
 
-		c, err := usbserial.SendBreak(fd)
+		if err := p.SendBreak(); err != nil {
+			return 0, err
+		}
+
+		c, err := p.RecvBreak()
 		if err != nil {
 			return 0, err
 		}
 
-		// we could reuse the fd, but we won't, for reproducibility reasons
-		if err := usbserial.Close(fd); err != nil {
+		// we could reuse the instance, but we won't, for reproducibility reasons
+		if err := p.Close(); err != nil {
 			return 0, err
 		}
 
