@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"os/signal"
 	"strings"
 
+	"golang.org/x/sys/unix"
 	"golang.rgm.io/dwtk/debugwire"
 )
 
@@ -34,7 +36,8 @@ func ListenAndServe(addr string, dw *debugwire.DebugWire) error {
 		return err
 	}
 
-	sigInt := signalChannel()
+	sigInt := make(chan os.Signal)
+	signal.Notify(sigInt, unix.SIGINT, unix.SIGKILL, unix.SIGTERM)
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
 		<-sigInt

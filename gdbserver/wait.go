@@ -6,22 +6,23 @@ import (
 	"os"
 
 	"golang.rgm.io/dwtk/debugwire"
+	"golang.rgm.io/dwtk/wait"
 )
 
-func wait(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn) ([]byte, error) {
+func waitForDwOrGdb(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn) ([]byte, error) {
 	nctx, cancel := context.WithCancel(ctx)
 
 	sigGdb := make(chan bool)
 	sigDw := make(chan bool)
 
 	go func() {
-		if err := waitForFd(nctx, conn.Fd, sigGdb); err != nil {
+		if err := wait.WaitForFd(nctx, conn.Fd, sigGdb); err != nil {
 			fmt.Fprintf(os.Stderr, "error: gdbserver: gdb: %s\n", err)
 		}
 	}()
 
 	go func() {
-		if err := dw.Port.Wait(nctx, sigDw); err != nil {
+		if err := dw.Wait(nctx, sigDw); err != nil {
 			fmt.Fprintf(os.Stderr, "error: gdbserver: debugwire: %s\n", err)
 		}
 	}()

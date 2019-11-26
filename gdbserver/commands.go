@@ -200,7 +200,7 @@ func handleCommand(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn, 
 		if err := dw.Continue(); err != nil {
 			return notifyGdb(err, []byte("S00"))
 		}
-		rv, err := wait(ctx, dw, conn)
+		rv, err := waitForDwOrGdb(ctx, dw, conn)
 		if err != nil {
 			return notifyGdb(err, []byte("S00"))
 		}
