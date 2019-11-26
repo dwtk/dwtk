@@ -5,5 +5,5 @@ import (
 )
 
 func (dw *DebugWire) Wait(ctx context.Context, c chan bool) error {
-	return dw.Port.Wait(ctx, c)
+	return dw.device.Wait(ctx, c)
 }

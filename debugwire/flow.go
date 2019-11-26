@@ -5,10 +5,10 @@ func (dw *DebugWire) Go() error {
 		0x40,
 		0x30,
 	}
-	if err := dw.Port.Write(c); err != nil {
+	if err := dw.device.Write(c); err != nil {
 		return err
 	}
-	return dw.Port.Commit()
+	return dw.device.Commit()
 }
 
 func (dw *DebugWire) Step() error {
@@ -16,7 +16,7 @@ func (dw *DebugWire) Step() error {
 		0x60,
 		0x31,
 	}
-	if err := dw.Port.Write(c); err != nil {
+	if err := dw.device.Write(c); err != nil {
 		return err
 	}
 
@@ -34,8 +34,8 @@ func (dw *DebugWire) Continue() error {
 	if dw.Timers {
 		t -= 0x20
 	}
-	if err := dw.Port.Write(append(c, t, 0x30)); err != nil {
+	if err := dw.device.Write(append(c, t, 0x30)); err != nil {
 		return err
 	}
-	return dw.Port.Commit()
+	return dw.device.Commit()
 }

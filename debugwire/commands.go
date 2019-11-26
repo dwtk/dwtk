@@ -1,7 +1,7 @@
 package debugwire
 
 func (dw *DebugWire) Disable() error {
-	return dw.Port.Write([]byte{0x06})
+	return dw.device.Write([]byte{0x06})
 }
 
 func (dw *DebugWire) Reset() error {
@@ -9,7 +9,7 @@ func (dw *DebugWire) Reset() error {
 		return err
 	}
 
-	if err := dw.Port.Write([]byte{0x07}); err != nil {
+	if err := dw.device.Write([]byte{0x07}); err != nil {
 		return err
 	}
 
@@ -17,9 +17,9 @@ func (dw *DebugWire) Reset() error {
 }
 
 func (dw *DebugWire) GetSignature() (uint16, error) {
-	if err := dw.Port.Write([]byte{0xf3}); err != nil {
+	if err := dw.device.Write([]byte{0xf3}); err != nil {
 		return 0, err
 	}
 
-	return dw.Port.ReadWord()
+	return dw.device.ReadWord()
 }

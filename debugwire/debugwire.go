@@ -8,26 +8,26 @@ import (
 )
 
 type DebugWire struct {
-	Port   *usbserial.UsbSerial
 	MCU    *avr.MCU
 	Timers bool
 
+	device          *usbserial.UsbSerial
 	hwBreakpoint    uint16
 	hwBreakpointSet bool
 	swBreakpoints   map[uint16]uint16
 	afterBreak      bool
 }
 
-func New(portDevice string, baudrate uint32) (*DebugWire, error) {
-	u, err := usbserial.New(portDevice, baudrate)
+func New(device string, baudrate uint32) (*DebugWire, error) {
+	u, err := usbserial.New(device, baudrate)
 	if err != nil {
 		return nil, err
 	}
 
 	rv := &DebugWire{
-		Port:   u,
 		Timers: true,
 
+		device:          u,
 		hwBreakpointSet: false,
 		swBreakpoints:   make(map[uint16]uint16, 1),
 		afterBreak:      false,
@@ -49,5 +49,5 @@ func New(portDevice string, baudrate uint32) (*DebugWire, error) {
 }
 
 func (dw *DebugWire) Close() error {
-	return dw.Port.Close()
+	return dw.device.Close()
 }

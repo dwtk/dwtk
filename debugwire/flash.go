@@ -172,9 +172,9 @@ func (dw *DebugWire) ReadFlash(start uint16, b []byte) error {
 		0xc2, 0x02,
 		0x20,
 	}
-	if err := dw.Port.Write(c); err != nil {
+	if err := dw.device.Write(c); err != nil {
 		return err
 	}
 
-	return dw.Port.Read(b)
+	return dw.device.Read(b)
 }

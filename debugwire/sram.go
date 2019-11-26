@@ -16,7 +16,7 @@ func (dw *DebugWire) WriteSRAM(start uint16, b []byte) error {
 		0xc2, 0x04,
 		0x20,
 	}
-	return dw.Port.Write(append(c, b...))
+	return dw.device.Write(append(c, b...))
 }
 
 func (dw *DebugWire) ReadSRAM(start uint16, b []byte) error {
@@ -35,9 +35,9 @@ func (dw *DebugWire) ReadSRAM(start uint16, b []byte) error {
 		0xc2, 0x00,
 		0x20,
 	}
-	if err := dw.Port.Write(c); err != nil {
+	if err := dw.device.Write(c); err != nil {
 		return err
 	}
 
-	return dw.Port.Read(b)
+	return dw.device.Read(b)
 }

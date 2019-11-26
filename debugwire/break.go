@@ -5,7 +5,7 @@ import (
 )
 
 func (dw *DebugWire) SendBreak() error {
-	if err := dw.Port.SendBreak(); err != nil {
+	if err := dw.device.SendBreak(); err != nil {
 		return err
 	}
 
@@ -13,7 +13,7 @@ func (dw *DebugWire) SendBreak() error {
 }
 
 func (dw *DebugWire) RecvBreak() error {
-	b, err := dw.Port.RecvBreak()
+	b, err := dw.device.RecvBreak()
 	if err != nil {
 		return err
 	}

@@ -6,5 +6,5 @@ func (dw *DebugWire) WriteInstruction(inst uint16) error {
 		0xd2, byte(inst >> 8), byte(inst),
 		0x23,
 	}
-	return dw.Port.Write(c)
+	return dw.device.Write(c)
 }

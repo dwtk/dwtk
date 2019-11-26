@@ -8,7 +8,7 @@ func (dw *DebugWire) WriteRegisters(start byte, b []byte) error {
 		0xc2, 0x05,
 		0x20,
 	}
-	return dw.Port.Write(append(c, b...))
+	return dw.device.Write(append(c, b...))
 }
 
 func (dw *DebugWire) ReadRegisters(start byte, b []byte) error {
@@ -19,10 +19,10 @@ func (dw *DebugWire) ReadRegisters(start byte, b []byte) error {
 		0xc2, 0x01,
 		0x20,
 	}
-	if err := dw.Port.Write(c); err != nil {
+	if err := dw.device.Write(c); err != nil {
 		return err
 	}
-	return dw.Port.Read(b)
+	return dw.device.Read(b)
 }
 
 func (dw *DebugWire) SetPC(b uint16) error {
@@ -31,15 +31,15 @@ func (dw *DebugWire) SetPC(b uint16) error {
 	c := []byte{
 		0xd0, byte(b >> 8), byte(b),
 	}
-	return dw.Port.Write(c)
+	return dw.device.Write(c)
 }
 
 func (dw *DebugWire) GetPC() (uint16, error) {
-	if err := dw.Port.Write([]byte{0xf0}); err != nil {
+	if err := dw.device.Write([]byte{0xf0}); err != nil {
 		return 0, err
 	}
 
-	rv, err := dw.Port.ReadWord()
+	rv, err := dw.device.ReadWord()
 	if err != nil {
 		return 0, err
 	}
