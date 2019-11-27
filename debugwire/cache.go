@@ -6,18 +6,23 @@ import (
 )
 
 type Cached struct {
-	dw        *DebugWire
-	Registers []byte
-	PC        uint16
-	SP        uint16
-	SREG      byte
+	R0   byte
+	R1   byte
+	R29  byte
+	R30  byte
+	R31  byte
+	PC   uint16
+	SREG byte
+
+	dw     *DebugWire
+	with01 bool
 }
 
-func (dw *DebugWire) Cache() (*Cached, error) {
+func (dw *DebugWire) Cache(with01 bool) (*Cached, error) {
 	var err error
 	rv := &Cached{
-		dw:        dw,
-		Registers: make([]byte, 32),
+		dw:     dw,
+		with01: with01,
 	}
 
 	rv.PC, err = dw.GetPC()
@@ -25,33 +30,44 @@ func (dw *DebugWire) Cache() (*Cached, error) {
 		return nil, err
 	}
 
-	if err = dw.ReadRegisters(0, rv.Registers); err != nil {
-		return nil, err
+	if with01 {
+		b := make([]byte, 2)
+		if err := dw.ReadRegisters(0, b); err != nil {
+			return nil, err
+		}
+		rv.R0 = b[0]
+		rv.R1 = b[1]
 	}
 
-	// SPL, SPH, SREG
-	sr := make([]byte, 3)
-	if err = dw.ReadSRAM(0x5d, sr); err != nil {
+	b := make([]byte, 3)
+	if err = dw.ReadRegisters(29, b); err != nil {
 		return nil, err
 	}
+	rv.R29 = b[0]
+	rv.R30 = b[1]
+	rv.R31 = b[2]
 
-	rv.SP = uint16(sr[1]<<8) | uint16(sr[0])
-	rv.SREG = sr[2]
+	rv.SREG, err = dw.GetSREG()
+	if err != nil {
+		return nil, err
+	}
 
 	return rv, nil
 }
 
 func (c *Cached) Restore() {
 	rv := func() error {
-		sr := []byte{
-			byte(c.SP), byte(c.SP >> 8),
-			c.SREG,
-		}
-		if err := c.dw.WriteSRAM(0x5d, sr); err != nil {
+		if err := c.dw.SetSREG(c.SREG); err != nil {
 			return err
 		}
 
-		if err := c.dw.WriteRegisters(0, c.Registers); err != nil {
+		if c.with01 {
+			if err := c.dw.WriteRegisters(0, []byte{c.R0, c.R1}); err != nil {
+				return err
+			}
+		}
+
+		if err := c.dw.WriteRegisters(29, []byte{c.R29, c.R30, c.R31}); err != nil {
 			return err
 		}
 

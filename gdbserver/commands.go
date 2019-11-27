@@ -47,12 +47,6 @@ func handleCommand(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn, 
 		}
 
 	case 'G':
-		cache, err := dw.Cache()
-		if err != nil {
-			return notifyGdb(err, []byte("E01"))
-		}
-		defer cache.Restore()
-
 		b := make([]byte, hex.DecodedLen(len(cmd[1:])))
 		n, err := hex.Decode(b, cmd[1:])
 		if err != nil {
@@ -65,32 +59,56 @@ func handleCommand(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn, 
 			)
 		}
 
-		cache.Registers = b[0:32]
-		cache.SREG = b[32]
-		cache.SP = uint16(b[33]) | uint16(b[34]<<8)
-		cache.PC = uint16(b[35]) | uint16(b[36]<<8)
+		if err := dw.WriteRegisters(0, b[0:32]); err != nil {
+			return notifyGdb(err, []byte("E01"))
+		}
+
+		if err := dw.SetSREG(b[32]); err != nil {
+			return notifyGdb(err, []byte("E01"))
+		}
+
+		if err := dw.SetSP(uint16(b[33]) | uint16(b[34]<<8)); err != nil {
+			return notifyGdb(err, []byte("E01"))
+		}
+
+		if err := dw.SetPC(uint16(b[35]) | uint16(b[36]<<8)); err != nil {
+			return notifyGdb(err, []byte("E01"))
+		}
 
 		return writePacket(conn, []byte("OK"))
 
 	case 'g':
-		cache, err := dw.Cache()
+		cache, err := dw.Cache(true)
 		if err != nil {
 			return notifyGdb(err, []byte("E01"))
 		}
 		defer cache.Restore()
 
-		b := append(
-			cache.Registers,
+		b := make([]byte, 27)
+		if err := dw.ReadRegisters(2, b); err != nil {
+			return notifyGdb(err, []byte("E01"))
+		}
+		b = append([]byte{cache.R0, cache.R1}, b...)
+		b = append(b,
+			cache.R29, cache.R30, cache.R31,
 			cache.SREG,
-			byte(cache.SP), byte(cache.SP>>8),
-			byte(cache.PC), byte((cache.PC)>>8), 0, 0,
 		)
+
+		sp, err := dw.GetSP()
+		if err != nil {
+			return notifyGdb(err, []byte("E01"))
+		}
+		b = append(b,
+			byte(sp), byte(sp>>8),
+			byte(cache.PC), byte(cache.PC>>8), 0, 0,
+		)
+
 		d := make([]byte, hex.EncodedLen(len(b)))
 		hex.Encode(d, b)
 		return writePacket(conn, d)
 
 	case 'M':
-		cache, err := dw.Cache()
+		cache, err := dw.Cache(true)
 		if err != nil {
 			return notifyGdb(err, []byte("E01"))
 		}
@@ -149,7 +167,7 @@ func handleCommand(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn, 
 		return writePacket(conn, []byte("OK"))
 
 	case 'm':
-		cache, err := dw.Cache()
+		cache, err := dw.Cache(false)
 		if err != nil {
 			return notifyGdb(err, []byte("E01"))
 		}
@@ -237,7 +255,7 @@ func handleCommand(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn, 
 
 		switch p[0][0] {
 		case '0':
-			cache, err := dw.Cache()
+			cache, err := dw.Cache(true)
 			if err != nil {
 				return notifyGdb(err, []byte("E01"))
 			}
