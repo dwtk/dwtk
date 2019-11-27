@@ -4,16 +4,19 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/spf13/cobra"
 	"golang.rgm.io/dwtk/firmware"
+	"golang.rgm.io/dwtk/internal/cli"
 )
 
-var VerifyCmd = &cobra.Command{
-	Use:   "verify FILE",
-	Short: "verify firmware (ELF or Intel HEX) flashed to target MCU and exit",
-	Long:  "This command verifies firmware (ELF or Intel Hex) flashed to target MCU and exits.",
-	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+var VerifyCmd = &cli.Command{
+	Name:        "verify",
+	Usage:       "FILE",
+	Description: "verify firmware (ELF or Intel HEX) flashed to target MCU and exit",
+	Run: func(args []string) error {
+		if len(args) == 0 {
+			return fmt.Errorf("FILE argument required")
+		}
+
 		f, err := firmware.Parse(args[0])
 		if err != nil {
 			return err
@@ -27,7 +30,7 @@ var VerifyCmd = &cobra.Command{
 		i := 1
 		read := make([]byte, dw.MCU.FlashPageSize)
 		for addr, data := range pages {
-			cmd.Printf("Verifying page %d/%d ...\n", i, len(pages))
+			fmt.Printf("Verifying page %d/%d ...\n", i, len(pages))
 			if err := dw.ReadFlash(addr, read); err != nil {
 				return err
 			}

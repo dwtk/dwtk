@@ -1,10 +1,11 @@
 package cmd
 
 import (
+	"flag"
 	"fmt"
 
-	"github.com/spf13/cobra"
 	"golang.rgm.io/dwtk/debugwire"
+	"golang.rgm.io/dwtk/internal/cli"
 	"golang.rgm.io/dwtk/logger"
 	"golang.rgm.io/dwtk/version"
 )
@@ -14,45 +15,35 @@ var (
 	noReset bool
 
 	serialPort string
-	baudrate   uint32
+	baudrate   uint
 	debug      bool
 )
 
-func init() {
-	RootCmd.PersistentFlags().StringVarP(
-		&serialPort,
-		"serial-port",
-		"s",
-		"",
-		"serial port device (e.g. /dev/ttyUSB0) (Default: detect)",
-	)
-	RootCmd.PersistentFlags().Uint32VarP(
-		&baudrate,
-		"baudrate",
-		"b",
-		0,
-		"serial port baudrate (e.g. 62500) (Default: detect)",
-	)
-	RootCmd.PersistentFlags().BoolVarP(
-		&debug,
-		"debug",
-		"d",
-		false,
-		"enable debugging messages",
-	)
-	RootCmd.SetHelpCommand(&cobra.Command{
-		Use:    "no-help",
-		Hidden: true,
-	})
-}
-
-var RootCmd = &cobra.Command{
-	Use:          "dwtk",
-	Short:        "debugWIRE toolkit for AVR microcontrollers",
-	Long:         "debugWIRE toolkit for AVR microcontrollers",
-	Version:      version.Version,
-	SilenceUsage: true,
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+var Prog = &cli.Program{
+	Version:     version.Version,
+	Description: "debugWIRE toolkit for AVR microcontrollers",
+	SetFlags: func(fs *flag.FlagSet) error {
+		fs.StringVar(
+			&serialPort,
+			"s",
+			"",
+			"serial port device (e.g. /dev/ttyUSB0) (Default: detect)",
+		)
+		fs.UintVar(
+			&baudrate,
+			"b",
+			0,
+			"serial port baudrate (e.g. 62500) (Default: detect)",
+		)
+		fs.BoolVar(
+			&debug,
+			"d",
+			false,
+			"enable debugging messages",
+		)
+		return nil
+	},
+	Pre: func(args []string) error {
 		if debug {
 			logger.EnableDebug()
 		}
@@ -65,6 +56,7 @@ var RootCmd = &cobra.Command{
 			}
 		}
 
+		baudrate := uint32(baudrate)
 		if baudrate == 0 {
 			var err error
 			baudrate, err = debugwire.GuessBaudrate(serialPort)
@@ -87,7 +79,7 @@ var RootCmd = &cobra.Command{
 
 		return nil
 	},
-	PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
+	Post: func(args []string) error {
 		if dw != nil {
 			defer dw.Close()
 			if !noReset {

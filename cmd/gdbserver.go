@@ -1,8 +1,10 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
+	"flag"
+
 	"golang.rgm.io/dwtk/gdbserver"
+	"golang.rgm.io/dwtk/internal/cli"
 )
 
 var (
@@ -10,29 +12,25 @@ var (
 	disableTimers bool
 )
 
-func init() {
-	GDBServerCmd.PersistentFlags().StringVarP(
-		&addr,
-		"addr",
-		"a",
-		"localhost:8000",
-		"GDB server host:port",
-	)
-	GDBServerCmd.PersistentFlags().BoolVarP(
-		&disableTimers,
-		"disable-timers",
-		"t",
-		false,
-		"disable timers",
-	)
-}
-
-var GDBServerCmd = &cobra.Command{
-	Use:   "gdbserver",
-	Short: "start remote debugging session for GDB",
-	Long:  "This command starts a remote debuggins session for GDB.",
-	Args:  cobra.NoArgs,
-	RunE: func(cmd *cobra.Command, args []string) error {
+var GDBServerCmd = &cli.Command{
+	Name:        "gdbserver",
+	Description: "start remote debugging session for GDB",
+	SetFlags: func(fs *flag.FlagSet) error {
+		fs.StringVar(
+			&addr,
+			"a",
+			"localhost:8000",
+			"GDB server host:port",
+		)
+		fs.BoolVar(
+			&disableTimers,
+			"t",
+			false,
+			"disable timers",
+		)
+		return nil
+	},
+	Run: func(args []string) error {
 		dw.Timers = !disableTimers
 		return gdbserver.ListenAndServe(addr, dw)
 	},

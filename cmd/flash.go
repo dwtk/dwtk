@@ -2,32 +2,35 @@ package cmd
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 
-	"github.com/spf13/cobra"
 	"golang.rgm.io/dwtk/firmware"
+	"golang.rgm.io/dwtk/internal/cli"
 )
 
 var (
 	noVerify bool
 )
 
-func init() {
-	FlashCmd.PersistentFlags().BoolVarP(
-		&noVerify,
-		"no-verify",
-		"n",
-		false,
-		"do not verify flashed firmware",
-	)
-}
+var FlashCmd = &cli.Command{
+	Name:        "flash",
+	Usage:       "FILE",
+	Description: "flash firmware (ELF or Intel HEX) to target MCU, verify and exit",
+	SetFlags: func(fs *flag.FlagSet) error {
+		fs.BoolVar(
+			&noVerify,
+			"n",
+			false,
+			"do not verify flashed firmware",
+		)
+		return nil
+	},
+	Run: func(args []string) error {
+		if len(args) == 0 {
+			return fmt.Errorf("FILE argument required")
+		}
 
-var FlashCmd = &cobra.Command{
-	Use:   "flash FILE",
-	Short: "flash firmware (ELF or Intel HEX) to target MCU, verify and exit",
-	Long:  "This command flashes firmware (ELF or Intel Hex) to target MCU, verifies and exits.",
-	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
 		f, err := firmware.Parse(args[0])
 		if err != nil {
 			return err
@@ -40,7 +43,7 @@ var FlashCmd = &cobra.Command{
 
 		i := 1
 		for addr, data := range pages {
-			cmd.Printf("Flashing page %d/%d ...\n", i, len(pages))
+			fmt.Printf("Flashing page %d/%d ...\n", i, len(pages))
 			if err := dw.WriteFlashPage(addr, data); err != nil {
 				return err
 			}
@@ -54,7 +57,7 @@ var FlashCmd = &cobra.Command{
 		i = 1
 		read := make([]byte, dw.MCU.FlashPageSize)
 		for addr, data := range pages {
-			cmd.Printf("Verifying page %d/%d ...\n", i, len(pages))
+			fmt.Printf("Verifying page %d/%d ...\n", i, len(pages))
 			if err := dw.ReadFlash(addr, read); err != nil {
 				return err
 			}

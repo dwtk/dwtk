@@ -1,22 +1,22 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
+	"fmt"
+
+	"golang.rgm.io/dwtk/internal/cli"
 )
 
-var InfoCmd = &cobra.Command{
-	Use:   "info",
-	Short: "retrieve information from the target MCU and exit",
-	Long:  "This command retrieves information from the target MCU and exits.",
-	Args:  cobra.NoArgs,
-	RunE: func(cmd *cobra.Command, args []string) error {
+var InfoCmd = &cli.Command{
+	Name:        "info",
+	Description: "retrieve information from the target MCU and exit",
+	Run: func(args []string) error {
 		f, err := dw.ReadFuses()
 		if err != nil {
 			return err
 		}
 
-		cmd.Printf("Target MCU: %s\n", dw.MCU.Name)
-		cmd.Printf("Fuses: low=0x%02X, high=0x%02X, extended=0x%02X, lockbit=0x%02X\n",
+		fmt.Printf("Target MCU: %s\n", dw.MCU.Name)
+		fmt.Printf("Fuses: low=0x%02X, high=0x%02X, extended=0x%02X, lockbit=0x%02X\n",
 			f[0],
 			f[1],
 			f[2],

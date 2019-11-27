@@ -1,16 +1,21 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
+	"fmt"
+
 	"golang.rgm.io/dwtk/firmware"
+	"golang.rgm.io/dwtk/internal/cli"
 )
 
-var DumpCmd = &cobra.Command{
-	Use:   "dump FILE",
-	Short: "dump firmware (Intel HEX) from target MCU and exit",
-	Long:  "This command dumps firmware (Intel Hex) from target MCU and exits.",
-	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+var DumpCmd = &cli.Command{
+	Name:        "dump",
+	Usage:       "FILE",
+	Description: "dump firmware (Intel HEX) from target MCU and exit",
+	Run: func(args []string) error {
+		if len(args) == 0 {
+			return fmt.Errorf("FILE argument required")
+		}
+
 		numPages, err := dw.MCU.NumFlashPages()
 		if err != nil {
 			return err
@@ -19,7 +24,7 @@ var DumpCmd = &cobra.Command{
 		read := make([]byte, dw.MCU.FlashPageSize)
 		f := []byte{}
 		for i := uint16(0); i < numPages; i += 1 {
-			cmd.Printf("Retrieving page %d/%d ...\n", i+1, numPages)
+			fmt.Printf("Retrieving page %d/%d ...\n", i+1, numPages)
 			addr := i * dw.MCU.FlashPageSize
 			if err := dw.ReadFlash(addr, read); err != nil {
 				return err
