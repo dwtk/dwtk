@@ -24,6 +24,11 @@ var DumpCmd = &cobra.Command{
 			f = append(f, read...)
 		}
 
-		return firmware.Dump(args[0], f)
+		fw, err := firmware.NewFromData(f, dw.MCU)
+		if err != nil {
+			return err
+		}
+
+		return fw.Dump(args[0])
 	},
 }

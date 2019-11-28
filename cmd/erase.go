@@ -13,14 +13,16 @@ var EraseCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		noReset = true
 
-		f, err := firmware.Empty(dw.MCU)
+		f, err := firmware.NewEmpty(dw.MCU)
 		if err != nil {
 			return err
 		}
 
+		pages := f.SplitPages()
+
 		i := 1
-		for _, page := range f.Pages {
-			cmd.Printf("Erasing page %d/%d ...\n", i, len(f.Pages))
+		for _, page := range pages {
+			cmd.Printf("Erasing page %d/%d ...\n", i, len(pages))
 			if err := dw.WriteFlashPage(page.Address, page.Data); err != nil {
 				return err
 			}

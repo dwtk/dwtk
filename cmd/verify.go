@@ -14,15 +14,17 @@ var VerifyCmd = &cobra.Command{
 	Long:  "This command verifies firmware (ELF or Intel Hex) flashed to target MCU and exits.",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		f, err := firmware.Parse(args[0], dw.MCU)
+		f, err := firmware.NewFromFile(args[0], dw.MCU)
 		if err != nil {
 			return err
 		}
 
+		pages := f.SplitPages()
+
 		i := 1
 		read := make([]byte, dw.MCU.FlashPageSize)
-		for _, page := range f.Pages {
-			cmd.Printf("Verifying page %d/%d ...\n", i, len(f.Pages))
+		for _, page := range pages {
+			cmd.Printf("Verifying page %d/%d ...\n", i, len(pages))
 			if err := dw.ReadFlash(page.Address, read); err != nil {
 				return err
 			}

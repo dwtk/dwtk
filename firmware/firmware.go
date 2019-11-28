@@ -16,47 +16,42 @@ type Page struct {
 }
 
 type Firmware struct {
-	MCU   *avr.MCU
-	Data  []byte
-	Pages []*Page
+	Data []byte
+	MCU  *avr.MCU
 }
 
-func split(data []byte, mcu *avr.MCU) []*Page {
-	pages := []*Page{}
-	n := uint16(math.Ceil(float64(len(data)) / float64(mcu.FlashPageSize)))
-	for i := uint16(0); i < n; i++ {
-		c := make([]byte, mcu.FlashPageSize)
-		addr := i * mcu.FlashPageSize
-		for j := uint16(0); j < mcu.FlashPageSize && (addr+j) < uint16(len(data)); j++ {
-			c[j] = data[addr+j]
-		}
-		pages = append(pages, &Page{
-			Address: addr,
-			Data:    c,
-		})
-	}
-	return pages
-}
-
-func Empty(mcu *avr.MCU) (*Firmware, error) {
+func NewEmpty(mcu *avr.MCU) (*Firmware, error) {
 	if mcu == nil {
 		return nil, fmt.Errorf("firmware: MCU must be set")
 	}
 
-	data := make([]byte, mcu.FlashSize)
-
+	// not using NewFromData because we know that our "firmware" size is safe
 	return &Firmware{
-		MCU:   mcu,
-		Data:  data,
-		Pages: split(data, mcu),
+		MCU:  mcu,
+		Data: make([]byte, mcu.FlashSize),
 	}, nil
 }
 
-func Parse(path string, mcu *avr.MCU) (*Firmware, error) {
+func NewFromData(data []byte, mcu *avr.MCU) (*Firmware, error) {
 	if mcu == nil {
 		return nil, fmt.Errorf("firmware: MCU must be set")
 	}
 
+	if uint16(len(data)) > mcu.FlashSize {
+		return nil, fmt.Errorf("firmware: size (%d) bigger than %s flash (%d)",
+			len(data),
+			mcu.Name,
+			mcu.FlashSize,
+		)
+	}
+
+	return &Firmware{
+		Data: data,
+		MCU:  mcu,
+	}, nil
+}
+
+func NewFromFile(path string, mcu *avr.MCU) (*Firmware, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return nil, err
 	}
@@ -84,21 +79,26 @@ func Parse(path string, mcu *avr.MCU) (*Firmware, error) {
 		return nil, err
 	}
 
-	if uint16(len(data)) > mcu.FlashSize {
-		return nil, fmt.Errorf("firmware: size (%d) bigger than %s flash (%d)",
-			len(data),
-			mcu.Name,
-			mcu.FlashSize,
-		)
-	}
-
-	return &Firmware{
-		MCU:   mcu,
-		Data:  data,
-		Pages: split(data, mcu),
-	}, nil
+	return NewFromData(data, mcu)
 }
 
-func Dump(path string, data []byte) error {
-	return hex.Dump(path, data)
+func (f *Firmware) SplitPages() []*Page {
+	pages := []*Page{}
+	n := uint16(math.Ceil(float64(len(f.Data)) / float64(f.MCU.FlashPageSize)))
+	for i := uint16(0); i < n; i++ {
+		c := make([]byte, f.MCU.FlashPageSize)
+		addr := i * f.MCU.FlashPageSize
+		for j := uint16(0); j < f.MCU.FlashPageSize && (addr+j) < uint16(len(f.Data)); j++ {
+			c[j] = f.Data[addr+j]
+		}
+		pages = append(pages, &Page{
+			Address: addr,
+			Data:    c,
+		})
+	}
+	return pages
+}
+
+func (f *Firmware) Dump(path string) error {
+	return hex.Dump(path, f.Data)
 }
