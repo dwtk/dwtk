@@ -32,7 +32,7 @@ func GuessBaudrate(portDevice string) (uint32, error) {
 	// possible
 	for i := 20; i > 0; i-- {
 		baudrate := uint32((i * 1000000) / 128)
-		p, err := usbserial.New(portDevice, baudrate)
+		p, err := usbserial.Open(portDevice, baudrate)
 		if err != nil {
 			return 0, err
 		}

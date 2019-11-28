@@ -19,7 +19,7 @@ type DebugWire struct {
 }
 
 func New(device string, baudrate uint32) (*DebugWire, error) {
-	u, err := usbserial.New(device, baudrate)
+	u, err := usbserial.Open(device, baudrate)
 	if err != nil {
 		return nil, err
 	}

@@ -13,7 +13,7 @@ type UsbSerial struct {
 	buf   []byte
 }
 
-func New(device string, baudrate uint32) (*UsbSerial, error) {
+func Open(device string, baudrate uint32) (*UsbSerial, error) {
 	fd, err := open(device, baudrate)
 	if err != nil {
 		return nil, err
