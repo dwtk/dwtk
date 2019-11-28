@@ -37,7 +37,7 @@ var FlashCmd = &cobra.Command{
 
 		i := 1
 		for _, page := range pages {
-			cmd.Printf("Flashing page %d/%d ...\n", i, len(pages))
+			cmd.Printf("Flashing page 0x%04x (%d/%d) ...\n", page.Address, i, len(pages))
 			if err := dw.WriteFlashPage(page.Address, page.Data); err != nil {
 				return err
 			}
@@ -51,7 +51,7 @@ var FlashCmd = &cobra.Command{
 		i = 1
 		read := make([]byte, dw.MCU.FlashPageSize)
 		for _, page := range pages {
-			cmd.Printf("Verifying page %d/%d ...\n", i, len(pages))
+			cmd.Printf("Verifying page 0x%04x (%d/%d) ...\n", page.Address, i, len(pages))
 			if err := dw.ReadFlash(page.Address, read); err != nil {
 				return err
 			}

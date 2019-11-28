@@ -22,7 +22,7 @@ var EraseCmd = &cobra.Command{
 
 		i := 1
 		for _, page := range pages {
-			cmd.Printf("Erasing page %d/%d ...\n", i, len(pages))
+			cmd.Printf("Erasing page 0x%04x (%d/%d) ...\n", page.Address, i, len(pages))
 			if err := dw.WriteFlashPage(page.Address, page.Data); err != nil {
 				return err
 			}
