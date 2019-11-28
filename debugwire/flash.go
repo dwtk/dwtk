@@ -14,6 +14,12 @@ func (dw *DebugWire) WriteFlashPage(start uint16, b []byte) error {
 		)
 	}
 
+	if start%dw.MCU.FlashPageSize != 0 {
+		return fmt.Errorf("debugwire: flash: start address must be aligned to page start (page size: 0x%04x)",
+			dw.MCU.FlashPageSize,
+		)
+	}
+
 	if start+dw.MCU.FlashPageSize > dw.MCU.FlashSize {
 		return fmt.Errorf("debugwire: flash: writing out of flash space: 0x%04x + 0x%04x > 0x%04x",
 			start,

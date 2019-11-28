@@ -11,10 +11,7 @@ var DumpCmd = &cobra.Command{
 	Long:  "This command dumps firmware (Intel Hex) from target MCU and exits.",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		numPages, err := dw.MCU.NumFlashPages()
-		if err != nil {
-			return err
-		}
+		numPages := dw.MCU.FlashSize / dw.MCU.FlashPageSize
 
 		read := make([]byte, dw.MCU.FlashPageSize)
 		f := []byte{}

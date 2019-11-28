@@ -28,20 +28,15 @@ var FlashCmd = &cobra.Command{
 	Long:  "This command flashes firmware (ELF or Intel Hex) to target MCU, verifies and exits.",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		f, err := firmware.Parse(args[0])
-		if err != nil {
-			return err
-		}
-
-		pages, err := dw.MCU.PrepareFirmware(f)
+		f, err := firmware.Parse(args[0], dw.MCU)
 		if err != nil {
 			return err
 		}
 
 		i := 1
-		for addr, data := range pages {
-			cmd.Printf("Flashing page %d/%d ...\n", i, len(pages))
-			if err := dw.WriteFlashPage(addr, data); err != nil {
+		for _, page := range f.Pages {
+			cmd.Printf("Flashing page %d/%d ...\n", i, len(f.Pages))
+			if err := dw.WriteFlashPage(page.Address, page.Data); err != nil {
 				return err
 			}
 			i += 1
@@ -53,13 +48,13 @@ var FlashCmd = &cobra.Command{
 
 		i = 1
 		read := make([]byte, dw.MCU.FlashPageSize)
-		for addr, data := range pages {
-			cmd.Printf("Verifying page %d/%d ...\n", i, len(pages))
-			if err := dw.ReadFlash(addr, read); err != nil {
+		for _, page := range f.Pages {
+			cmd.Printf("Verifying page %d/%d ...\n", i, len(f.Pages))
+			if err := dw.ReadFlash(page.Address, read); err != nil {
 				return err
 			}
-			if bytes.Compare(data, read) != 0 {
-				return fmt.Errorf("Page mismatch 0x%04x: %v != %v", addr, data, read)
+			if bytes.Compare(page.Data, read) != 0 {
+				return fmt.Errorf("Page mismatch 0x%04x: %v != %v", page.Address, page.Data, read)
 			}
 			i += 1
 		}

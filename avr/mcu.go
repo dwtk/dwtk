@@ -1,10 +1,5 @@
 package avr
 
-import (
-	"fmt"
-	"math"
-)
-
 type MCU struct {
 	Name          string
 	Signature     uint16
@@ -36,35 +31,4 @@ func GetMCU(sign uint16) *MCU {
 		}
 	}
 	return nil
-}
-
-func (m *MCU) PrepareFirmware(data []byte) (map[uint16][]byte, error) {
-	if uint16(len(data)) > m.FlashSize {
-		return nil, fmt.Errorf("mcu: firmware size (%d) bigger than %s flash (%d)",
-			len(data),
-			m.Name,
-			m.FlashSize,
-		)
-	}
-
-	rv := make(map[uint16][]byte)
-	n := uint16(math.Ceil(float64(len(data)) / float64(m.FlashPageSize)))
-	for i := uint16(0); i < n; i++ {
-		c := make([]byte, m.FlashPageSize)
-		addr := i * m.FlashPageSize
-		for j := uint16(0); j < m.FlashPageSize && (addr+j) < uint16(len(data)); j++ {
-			c[j] = data[addr+j]
-		}
-		rv[addr] = c
-	}
-
-	return rv, nil
-}
-
-func (m *MCU) NumFlashPages() (uint16, error) {
-	if m.FlashSize%m.FlashPageSize != 0 {
-		return 0, fmt.Errorf("avr: invalid flash size: 0x%04x", m.FlashSize)
-	}
-
-	return m.FlashSize / m.FlashPageSize, nil
 }
