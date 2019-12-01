@@ -41,9 +41,12 @@ func GuessBaudrate(portDevice string) (uint32, error) {
 			return 0, err
 		}
 
+		// if devices are running on very low frequency (e.g. internal clock with
+		// CKDIV8 enabled, we may not even get a break response.
 		c, err := p.RecvBreak()
 		if err != nil {
-			return 0, err
+			p.Close() // return is irrelevant
+			continue
 		}
 
 		// we could reuse the instance, but we won't, for reproducibility reasons

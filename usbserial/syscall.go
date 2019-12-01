@@ -24,7 +24,7 @@ func open(portDevice string, baudrate uint32) (int, error) {
 		Ospeed: baudrate,
 	}
 	cfg.Cc[unix.VMIN] = 0
-	cfg.Cc[unix.VTIME] = 10
+	cfg.Cc[unix.VTIME] = 5
 
 	if err := unix.IoctlSetTermios(fd, unix.TCSETS2, cfg); err != nil {
 		unix.Close(fd)
