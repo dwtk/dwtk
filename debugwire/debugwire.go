@@ -42,7 +42,8 @@ func New(device string, baudrate uint32) (*DebugWire, error) {
 	rv.MCU = avr.GetMCU(sign)
 	if rv.MCU == nil {
 		rv.Close()
-		return nil, fmt.Errorf("debugwire: failed to detect MCU from signature: 0x%04x", sign)
+		return nil, fmt.Errorf(`debugwire: failed to detect MCU from signature: 0x%04x
+Please open an issue/pull request: https://github.com/rafaelmartins/dwtk`, sign)
 	}
 
 	return rv, nil
