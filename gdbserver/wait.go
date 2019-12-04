@@ -9,7 +9,7 @@ import (
 	"golang.rgm.io/dwtk/wait"
 )
 
-func waitForDwOrGdb(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn) ([]byte, error) {
+func waitForDwOrGdb(ctx context.Context, dw *debugwire.DebugWIRE, conn *tcpConn) ([]byte, error) {
 	nctx, cancel := context.WithCancel(ctx)
 
 	sigGdb := make(chan bool)

@@ -19,7 +19,7 @@ const (
 	packetChecksum2
 )
 
-func handlePacket(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn) error {
+func handlePacket(ctx context.Context, dw *debugwire.DebugWIRE, conn *tcpConn) error {
 	var (
 		cmd  []byte
 		cmdl []byte

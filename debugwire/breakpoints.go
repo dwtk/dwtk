@@ -7,7 +7,7 @@ import (
 	"golang.rgm.io/dwtk/avr"
 )
 
-func (dw *DebugWire) SetHwBreakpoint(addr uint16) bool {
+func (dw *DebugWIRE) SetHwBreakpoint(addr uint16) bool {
 	if dw.hwBreakpointSet {
 		return false
 	}
@@ -17,12 +17,12 @@ func (dw *DebugWire) SetHwBreakpoint(addr uint16) bool {
 	return true
 }
 
-func (dw *DebugWire) ClearHwBreakpoint() {
+func (dw *DebugWIRE) ClearHwBreakpoint() {
 	dw.hwBreakpointSet = false
 	dw.hwBreakpoint = 0
 }
 
-func (dw *DebugWire) SetSwBreakpoint(addr uint16) error {
+func (dw *DebugWIRE) SetSwBreakpoint(addr uint16) error {
 	f := make([]byte, 2)
 	if err := dw.ReadFlash(addr, f); err != nil {
 		return err
@@ -32,7 +32,7 @@ func (dw *DebugWire) SetSwBreakpoint(addr uint16) error {
 	return dw.WriteFlashInstruction(addr, avr.BREAK())
 }
 
-func (dw *DebugWire) ClearSwBreakpoint(addr uint16) error {
+func (dw *DebugWIRE) ClearSwBreakpoint(addr uint16) error {
 	bp, ok := dw.swBreakpoints[addr]
 	if !ok {
 		return nil
@@ -46,7 +46,7 @@ func (dw *DebugWire) ClearSwBreakpoint(addr uint16) error {
 	return nil
 }
 
-func (dw *DebugWire) ClearSwBreakpoints() error {
+func (dw *DebugWIRE) ClearSwBreakpoints() error {
 	// this is used for recovery, so try to clear everything
 	errs := []string{}
 	for k, _ := range dw.swBreakpoints {
@@ -61,6 +61,6 @@ func (dw *DebugWire) ClearSwBreakpoints() error {
 	return nil
 }
 
-func (dw *DebugWire) HasSwBreakpoints() bool {
+func (dw *DebugWIRE) HasSwBreakpoints() bool {
 	return len(dw.swBreakpoints) > 0
 }

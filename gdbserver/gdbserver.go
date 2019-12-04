@@ -13,7 +13,7 @@ import (
 	"golang.rgm.io/dwtk/debugwire"
 )
 
-func ListenAndServe(addr string, dw *debugwire.DebugWire) error {
+func ListenAndServe(addr string, dw *debugwire.DebugWIRE) error {
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err

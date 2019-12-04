@@ -1,6 +1,6 @@
 package debugwire
 
-func (dw *DebugWire) Go() error {
+func (dw *DebugWIRE) Go() error {
 	c := []byte{
 		0x40,
 		0x30,
@@ -11,7 +11,7 @@ func (dw *DebugWire) Go() error {
 	return dw.device.Commit()
 }
 
-func (dw *DebugWire) Step() error {
+func (dw *DebugWIRE) Step() error {
 	c := []byte{
 		0x60,
 		0x31,
@@ -23,7 +23,7 @@ func (dw *DebugWire) Step() error {
 	return dw.RecvBreak()
 }
 
-func (dw *DebugWire) Continue() error {
+func (dw *DebugWIRE) Continue() error {
 	c := []byte{}
 	t := byte(0x60)
 	if dw.hwBreakpointSet {

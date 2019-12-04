@@ -17,7 +17,7 @@ func (d *detachErr) Error() string {
 	return ""
 }
 
-func handleCommand(ctx context.Context, dw *debugwire.DebugWire, conn *tcpConn, cmd []byte) error {
+func handleCommand(ctx context.Context, dw *debugwire.DebugWIRE, conn *tcpConn, cmd []byte) error {
 	notifyGdb := func(err error, rsp []byte) error {
 		errs := []string{}
 		if err != nil {

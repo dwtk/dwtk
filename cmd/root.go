@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	dw      *debugwire.DebugWire
+	dw      *debugwire.DebugWIRE
 	noReset bool
 
 	serialPort string

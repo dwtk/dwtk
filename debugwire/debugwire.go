@@ -7,7 +7,7 @@ import (
 	"golang.rgm.io/dwtk/usbserial"
 )
 
-type DebugWire struct {
+type DebugWIRE struct {
 	MCU    *avr.MCU
 	Timers bool
 
@@ -18,13 +18,13 @@ type DebugWire struct {
 	afterBreak      bool
 }
 
-func New(device string, baudrate uint32) (*DebugWire, error) {
+func New(device string, baudrate uint32) (*DebugWIRE, error) {
 	u, err := usbserial.Open(device, baudrate)
 	if err != nil {
 		return nil, err
 	}
 
-	rv := &DebugWire{
+	rv := &DebugWIRE{
 		Timers: true,
 
 		device:          u,
@@ -49,6 +49,6 @@ Please open an issue/pull request: https://github.com/rafaelmartins/dwtk`, sign)
 	return rv, nil
 }
 
-func (dw *DebugWire) Close() error {
+func (dw *DebugWIRE) Close() error {
 	return dw.device.Close()
 }

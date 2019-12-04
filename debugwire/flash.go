@@ -6,7 +6,7 @@ import (
 	"golang.rgm.io/dwtk/avr"
 )
 
-func (dw *DebugWire) WriteFlashPage(start uint16, b []byte) error {
+func (dw *DebugWIRE) WriteFlashPage(start uint16, b []byte) error {
 	if uint16(len(b)) != dw.MCU.FlashPageSize {
 		return fmt.Errorf("debugwire: flash: page size must be 0x%04x for %s",
 			dw.MCU.FlashPageSize,
@@ -98,7 +98,7 @@ func (dw *DebugWire) WriteFlashPage(start uint16, b []byte) error {
 	return dw.SendBreak()
 }
 
-func (dw *DebugWire) WriteFlashInstruction(start uint16, inst uint16) error {
+func (dw *DebugWIRE) WriteFlashInstruction(start uint16, inst uint16) error {
 	c := []byte{
 		byte(inst),
 		byte(inst >> 8),
@@ -106,7 +106,7 @@ func (dw *DebugWire) WriteFlashInstruction(start uint16, inst uint16) error {
 	return dw.WriteFlash(start, c)
 }
 
-func (dw *DebugWire) WriteFlash(start uint16, b []byte) error {
+func (dw *DebugWIRE) WriteFlash(start uint16, b []byte) error {
 	startPage := start / dw.MCU.FlashPageSize
 	endAddr := start + uint16(len(b))
 	endPage := (endAddr - 1) / dw.MCU.FlashPageSize
@@ -154,7 +154,7 @@ func (dw *DebugWire) WriteFlash(start uint16, b []byte) error {
 	return nil
 }
 
-func (dw *DebugWire) ReadFlash(start uint16, b []byte) error {
+func (dw *DebugWIRE) ReadFlash(start uint16, b []byte) error {
 	if start+uint16(len(b)) > dw.MCU.FlashSize {
 		return fmt.Errorf("debugwire: flash: reading out of flash space: 0x%04x + 0x%04x > 0x%04x",
 			start,

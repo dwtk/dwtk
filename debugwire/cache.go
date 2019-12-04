@@ -14,11 +14,11 @@ type Cached struct {
 	PC   uint16
 	SREG byte
 
-	dw     *DebugWire
+	dw     *DebugWIRE
 	with01 bool
 }
 
-func (dw *DebugWire) Cache(with01 bool) (*Cached, error) {
+func (dw *DebugWIRE) Cache(with01 bool) (*Cached, error) {
 	var err error
 	rv := &Cached{
 		dw:     dw,

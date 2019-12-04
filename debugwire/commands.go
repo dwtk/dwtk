@@ -1,10 +1,10 @@
 package debugwire
 
-func (dw *DebugWire) Disable() error {
+func (dw *DebugWIRE) Disable() error {
 	return dw.device.Write([]byte{0x06})
 }
 
-func (dw *DebugWire) Reset() error {
+func (dw *DebugWIRE) Reset() error {
 	if err := dw.SendBreak(); err != nil {
 		return err
 	}
@@ -16,7 +16,7 @@ func (dw *DebugWire) Reset() error {
 	return dw.RecvBreak()
 }
 
-func (dw *DebugWire) GetSignature() (uint16, error) {
+func (dw *DebugWIRE) GetSignature() (uint16, error) {
 	if err := dw.device.Write([]byte{0xf3}); err != nil {
 		return 0, err
 	}

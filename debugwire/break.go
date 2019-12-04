@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func (dw *DebugWire) SendBreak() error {
+func (dw *DebugWIRE) SendBreak() error {
 	if err := dw.device.SendBreak(); err != nil {
 		return err
 	}
@@ -12,7 +12,7 @@ func (dw *DebugWire) SendBreak() error {
 	return dw.RecvBreak()
 }
 
-func (dw *DebugWire) RecvBreak() error {
+func (dw *DebugWIRE) RecvBreak() error {
 	b, err := dw.device.RecvBreak()
 	if err != nil {
 		return err

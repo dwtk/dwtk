@@ -4,7 +4,7 @@ import (
 	"golang.rgm.io/dwtk/avr"
 )
 
-func (dw *DebugWire) ReadFuses() ([]byte, error) {
+func (dw *DebugWIRE) ReadFuses() ([]byte, error) {
 	b := []byte{
 		avr.RFLB | avr.SELFPRGEN, // to set SPMCSR
 		0x00, 0x00,               // Z

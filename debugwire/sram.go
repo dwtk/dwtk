@@ -1,6 +1,6 @@
 package debugwire
 
-func (dw *DebugWire) WriteSRAM(start uint16, b []byte) error {
+func (dw *DebugWIRE) WriteSRAM(start uint16, b []byte) error {
 	c := []byte{
 		byte(start), byte(start >> 8),
 	}
@@ -19,7 +19,7 @@ func (dw *DebugWire) WriteSRAM(start uint16, b []byte) error {
 	return dw.device.Write(append(c, b...))
 }
 
-func (dw *DebugWire) ReadSRAM(start uint16, b []byte) error {
+func (dw *DebugWIRE) ReadSRAM(start uint16, b []byte) error {
 	c := []byte{
 		byte(start), byte(start >> 8),
 	}
