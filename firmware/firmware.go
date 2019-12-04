@@ -25,10 +25,15 @@ func NewEmpty(mcu *avr.MCU) (*Firmware, error) {
 		return nil, fmt.Errorf("firmware: MCU must be set")
 	}
 
+	data := make([]byte, mcu.FlashSize)
+	for i := range data {
+		data[i] = 0xff
+	}
+
 	// not using NewFromData because we know that our "firmware" size is safe
 	return &Firmware{
 		MCU:  mcu,
-		Data: make([]byte, mcu.FlashSize),
+		Data: data,
 	}, nil
 }
 
