@@ -8,6 +8,10 @@ import (
 	"golang.rgm.io/dwtk/firmware"
 )
 
+func init() {
+	RootCmd.AddCommand(VerifyCmd)
+}
+
 var VerifyCmd = &cobra.Command{
 	Use:   "verify FILE",
 	Short: "verify firmware (ELF or Intel HEX) flashed to target MCU and exit",

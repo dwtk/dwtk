@@ -4,6 +4,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func init() {
+	RootCmd.AddCommand(DisableCmd)
+}
+
 var DisableCmd = &cobra.Command{
 	Use:   "disable",
 	Short: "disable debugWIRE in the target MCU, reset it and exit",

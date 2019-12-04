@@ -4,6 +4,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func init() {
+	RootCmd.AddCommand(InfoCmd)
+}
+
 var InfoCmd = &cobra.Command{
 	Use:   "info",
 	Short: "retrieve information from the target MCU and exit",

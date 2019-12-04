@@ -5,6 +5,10 @@ import (
 	"golang.rgm.io/dwtk/firmware"
 )
 
+func init() {
+	RootCmd.AddCommand(EraseCmd)
+}
+
 var EraseCmd = &cobra.Command{
 	Use:   "erase",
 	Short: "erase the target MCU's flash and exit",

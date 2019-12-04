@@ -20,6 +20,8 @@ func init() {
 		false,
 		"do not verify flashed firmware",
 	)
+
+	RootCmd.AddCommand(FlashCmd)
 }
 
 var FlashCmd = &cobra.Command{

@@ -5,6 +5,10 @@ import (
 	"golang.rgm.io/dwtk/firmware"
 )
 
+func init() {
+	RootCmd.AddCommand(DumpCmd)
+}
+
 var DumpCmd = &cobra.Command{
 	Use:   "dump FILE",
 	Short: "dump firmware (Intel HEX) from target MCU and exit",

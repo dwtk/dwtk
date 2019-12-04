@@ -25,6 +25,8 @@ func init() {
 		false,
 		"disable timers",
 	)
+
+	RootCmd.AddCommand(GDBServerCmd)
 }
 
 var GDBServerCmd = &cobra.Command{

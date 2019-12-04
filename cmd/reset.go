@@ -4,6 +4,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func init() {
+	RootCmd.AddCommand(ResetCmd)
+}
+
 var ResetCmd = &cobra.Command{
 	Use:   "reset",
 	Short: "reset target MCU and exit",
