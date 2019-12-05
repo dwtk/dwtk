@@ -30,7 +30,7 @@ func newConn(conn net.Conn) (*tcpConn, error) {
 func (conn *tcpConn) readByte(ctx context.Context) (byte, error) {
 	c := make(chan bool)
 	go func() {
-		if err := wait.WaitForFd(ctx, conn.Fd, c); err != nil {
+		if err := wait.ForFd(ctx, conn.Fd, c); err != nil {
 			fmt.Fprintf(os.Stderr, "error: gdbserver: gdb: %s\n", err)
 		}
 	}()

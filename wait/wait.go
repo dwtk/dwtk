@@ -7,7 +7,7 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-func WaitForFd(ctx context.Context, fd int, c chan bool) error {
+func ForFd(ctx context.Context, fd int, c chan bool) error {
 	if fd < 0 {
 		return fmt.Errorf("bad file descriptor: %d", fd)
 	}

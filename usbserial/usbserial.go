@@ -107,5 +107,5 @@ func (u *UsbSerial) Wait(ctx context.Context, c chan bool) error {
 	u.mutex.Lock()
 	defer u.mutex.Unlock()
 
-	return wait.WaitForFd(ctx, u.fd, c)
+	return wait.ForFd(ctx, u.fd, c)
 }

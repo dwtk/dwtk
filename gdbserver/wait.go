@@ -16,7 +16,7 @@ func waitForDwOrGdb(ctx context.Context, dw *debugwire.DebugWIRE, conn *tcpConn)
 	sigDw := make(chan bool)
 
 	go func() {
-		if err := wait.WaitForFd(nctx, conn.Fd, sigGdb); err != nil {
+		if err := wait.ForFd(nctx, conn.Fd, sigGdb); err != nil {
 			fmt.Fprintf(os.Stderr, "error: gdbserver: gdb: %s\n", err)
 		}
 	}()
