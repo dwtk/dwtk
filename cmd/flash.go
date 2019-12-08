@@ -37,30 +37,26 @@ var FlashCmd = &cobra.Command{
 
 		pages := f.SplitPages()
 
-		i := 1
-		for _, page := range pages {
-			cmd.Printf("Flashing page 0x%04x (%d/%d) ...\n", page.Address, i, len(pages))
+		for i, page := range pages {
+			cmd.Printf("Flashing page 0x%04x (%d/%d) ...\n", page.Address, i+1, len(pages))
 			if err := dw.WriteFlashPage(page.Address, page.Data); err != nil {
 				return err
 			}
-			i += 1
 		}
 
 		if noVerify {
 			return nil
 		}
 
-		i = 1
 		read := make([]byte, dw.MCU.FlashPageSize)
-		for _, page := range pages {
-			cmd.Printf("Verifying page 0x%04x (%d/%d) ...\n", page.Address, i, len(pages))
+		for i, page := range pages {
+			cmd.Printf("Verifying page 0x%04x (%d/%d) ...\n", page.Address, i+1, len(pages))
 			if err := dw.ReadFlash(page.Address, read); err != nil {
 				return err
 			}
 			if bytes.Compare(page.Data, read) != 0 {
 				return fmt.Errorf("Page mismatch 0x%04x: %v != %v", page.Address, page.Data, read)
 			}
-			i += 1
 		}
 
 		return nil

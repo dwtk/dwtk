@@ -50,7 +50,7 @@ func (dw *DebugWIRE) GetPC() (uint16, error) {
 
 	if dw.afterBreak {
 		if rv > 0 {
-			rv -= 1
+			rv--
 		}
 		dw.afterBreak = false
 	}

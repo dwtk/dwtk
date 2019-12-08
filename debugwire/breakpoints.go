@@ -49,7 +49,7 @@ func (dw *DebugWIRE) ClearSwBreakpoint(addr uint16) error {
 func (dw *DebugWIRE) ClearSwBreakpoints() error {
 	// this is used for recovery, so try to clear everything
 	errs := []string{}
-	for k, _ := range dw.swBreakpoints {
+	for k := range dw.swBreakpoints {
 		if err := dw.ClearSwBreakpoint(k); err != nil {
 			errs = append(errs, err.Error())
 		}

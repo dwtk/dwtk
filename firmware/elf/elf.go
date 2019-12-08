@@ -23,7 +23,7 @@ func Parse(path string) ([]byte, error) {
 	defer f.Close()
 
 	if f.Machine != elf.EM_AVR {
-		return nil, fmt.Errorf("firmware: elf: Invalid machine architecture: %s\n", f.Machine)
+		return nil, fmt.Errorf("firmware: elf: invalid machine architecture: %s", f.Machine)
 	}
 
 	max := uint64(0)

@@ -113,7 +113,7 @@ func (dw *DebugWIRE) WriteFlash(start uint16, b []byte) error {
 
 	pages := make(map[int][]byte)
 
-	for i := startPage; i <= endPage; i += 1 {
+	for i := startPage; i <= endPage; i++ {
 		addr := i * dw.MCU.FlashPageSize
 		page := make([]byte, dw.MCU.FlashPageSize)
 
@@ -125,7 +125,7 @@ func (dw *DebugWIRE) WriteFlash(start uint16, b []byte) error {
 	}
 
 	k := 0
-	for i := startPage; i <= endPage; i += 1 {
+	for i := startPage; i <= endPage; i++ {
 		addr := i * dw.MCU.FlashPageSize
 		page, ok := pages[int(i)]
 		if !ok {
@@ -141,9 +141,9 @@ func (dw *DebugWIRE) WriteFlash(start uint16, b []byte) error {
 			pEnd = dw.MCU.FlashPageSize
 		}
 
-		for j := pStart; j < pEnd; j += 1 {
+		for j := pStart; j < pEnd; j++ {
 			page[j] = b[k]
-			k += 1
+			k++
 		}
 
 		if err := dw.WriteFlashPage(addr, page); err != nil {

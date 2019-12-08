@@ -19,7 +19,7 @@ var DumpCmd = &cobra.Command{
 
 		read := make([]byte, dw.MCU.FlashPageSize)
 		f := []byte{}
-		for i := uint16(0); i < numPages; i += 1 {
+		for i := uint16(0); i < numPages; i++ {
 			addr := i * dw.MCU.FlashPageSize
 			cmd.Printf("Retrieving page 0x%04x (%d/%d) ...\n", addr, i+1, numPages)
 			if err := dw.ReadFlash(addr, read); err != nil {

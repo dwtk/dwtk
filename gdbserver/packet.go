@@ -24,7 +24,7 @@ func handlePacket(ctx context.Context, dw *debugwire.DebugWIRE, conn *tcpConn) e
 		cmd  []byte
 		cmdl []byte
 		chk  byte
-		chkr []byte = make([]byte, 2)
+		chkr = make([]byte, 2)
 	)
 
 	state := packetAck
