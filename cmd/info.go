@@ -19,6 +19,9 @@ var InfoCmd = &cobra.Command{
 			return err
 		}
 
+		cmd.Printf("Serial Port: %s\n", serialPort)
+		cmd.Printf("Baud Rate: %d\n", baudrate)
+		cmd.Printf("\n")
 		cmd.Printf("Target MCU: %s\n", dw.MCU.Name)
 		cmd.Printf("Fuses: low=0x%02X, high=0x%02X, extended=0x%02X, lockbit=0x%02X\n",
 			f[0],
