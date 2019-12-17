@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"golang.rgm.io/dwtk/avr"
 )
 
 func init() {
@@ -24,10 +25,10 @@ var InfoCmd = &cobra.Command{
 		cmd.Printf("\n")
 		cmd.Printf("Target MCU: %s\n", dw.MCU.Name)
 		cmd.Printf("Fuses: low=0x%02X, high=0x%02X, extended=0x%02X, lockbit=0x%02X\n",
-			f[0],
-			f[1],
-			f[2],
-			f[3],
+			f[avr.LOW_FUSE],
+			f[avr.HIGH_FUSE],
+			f[avr.EXTENDED_FUSE],
+			f[avr.LOCKBIT],
 		)
 		return nil
 	},

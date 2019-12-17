@@ -45,10 +45,14 @@ func OUT(addr byte, reg byte) uint16 {
 	return op | ah | al | re
 }
 
-func LPM(reg byte) uint16 {
+func LPM(reg byte, incr bool) uint16 {
 	// https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_LPM.html
-	// opcode: 1001 000d dddd 0100
+	// opcode: 1001 000d dddd 0100 - Z
+	// opcode: 1001 000d dddd 0101 - Z+
 	op := uint16(0b1001000000000100)
+	if incr {
+		op |= 0b1
+	}
 	de := uint16(0b11111 & reg)
 	de <<= 4
 	return op | de

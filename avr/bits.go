@@ -1,12 +1,18 @@
 package avr
 
 const (
-	// SPMCSR
 	SPMEN = byte(1 << 0)
 	PGERS = byte(1 << 1)
 	PGWRT = byte(1 << 2)
 	RFLB  = byte(1 << 3)
 	CTPB  = byte(1 << 4)
+)
+
+const (
+	LOW_FUSE      = 0x00
+	LOCKBIT       = 0x01
+	EXTENDED_FUSE = 0x02
+	HIGH_FUSE     = 0x03
 )
 
 const (
