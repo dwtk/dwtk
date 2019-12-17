@@ -8,9 +8,10 @@ import (
 )
 
 type UsbSerial struct {
-	fd    int
-	mutex *sync.RWMutex
-	buf   []byte
+	baudrate uint32
+	fd       int
+	mutex    *sync.RWMutex
+	buf      []byte
 }
 
 func Open(device string, baudrate uint32) (*UsbSerial, error) {
@@ -20,9 +21,10 @@ func Open(device string, baudrate uint32) (*UsbSerial, error) {
 	}
 
 	return &UsbSerial{
-		fd:    fd,
-		mutex: &sync.RWMutex{},
-		buf:   []byte{},
+		baudrate: baudrate,
+		fd:       fd,
+		mutex:    &sync.RWMutex{},
+		buf:      []byte{},
 	}, nil
 }
 
@@ -88,7 +90,7 @@ func (u *UsbSerial) SendBreak() error {
 		return err
 	}
 
-	return sendBreak(u.fd)
+	return sendBreak(u.fd, u.baudrate)
 }
 
 func (u *UsbSerial) RecvBreak() (byte, error) {

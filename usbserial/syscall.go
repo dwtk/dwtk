@@ -24,7 +24,9 @@ func open(portDevice string, baudrate uint32) (int, error) {
 		Ospeed: baudrate,
 	}
 	cfg.Cc[unix.VMIN] = 0
-	cfg.Cc[unix.VTIME] = 5
+
+	// as we always receive the echo from our own transmission, 200ms is enough, and bigger than our maximum frame time
+	cfg.Cc[unix.VTIME] = 2
 
 	if err := unix.IoctlSetTermios(fd, unix.TCSETS2, cfg); err != nil {
 		unix.Close(fd)
@@ -95,14 +97,15 @@ func write(fd int, p []byte) error {
 	return nil
 }
 
-func sendBreak(fd int) error {
+func sendBreak(fd int, baudrate uint32) error {
 	logger.Debug.Print("> break")
 
 	if err := unix.IoctlSetInt(fd, unix.TIOCSBRK, 0); err != nil {
 		return err
 	}
 
-	time.Sleep(15 * time.Millisecond)
+	// we consider a frame as 10 bits, and send ~2 frames.
+	time.Sleep(time.Duration(float64(20000000)/float64(baudrate)) * time.Microsecond)
 
 	return unix.IoctlSetInt(fd, unix.TIOCCBRK, 0)
 }
