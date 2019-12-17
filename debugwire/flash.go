@@ -29,7 +29,7 @@ func (dw *DebugWIRE) WriteFlashPage(start uint16, b []byte) error {
 	}
 
 	c := []byte{
-		avr.CTPB | avr.SELFPRGEN,      // to set SPMCSR
+		avr.CTPB | avr.SPMEN,          // to set SPMCSR
 		byte(start), byte(start >> 8), // Z
 	}
 	if err := dw.WriteRegisters(29, c); err != nil {
@@ -46,7 +46,7 @@ func (dw *DebugWIRE) WriteFlashPage(start uint16, b []byte) error {
 	}
 
 	c = []byte{
-		avr.PGERS | avr.SELFPRGEN, // to set SPMCSR
+		avr.PGERS | avr.SPMEN, // to set SPMCSR
 	}
 	if err := dw.WriteRegisters(29, c); err != nil {
 		return err
@@ -62,7 +62,7 @@ func (dw *DebugWIRE) WriteFlashPage(start uint16, b []byte) error {
 	}
 
 	c = []byte{
-		avr.SELFPRGEN, // to set SPMCSR
+		avr.SPMEN, // to set SPMCSR
 	}
 	if err := dw.WriteRegisters(29, c); err != nil {
 		return err
@@ -83,7 +83,7 @@ func (dw *DebugWIRE) WriteFlashPage(start uint16, b []byte) error {
 	}
 
 	c = []byte{
-		avr.PGWRT | avr.SELFPRGEN,     // to set SPMCSR
+		avr.PGWRT | avr.SPMEN,         // to set SPMCSR
 		byte(start), byte(start >> 8), // Z
 	}
 	if err := dw.WriteRegisters(29, c); err != nil {

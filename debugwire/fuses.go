@@ -6,8 +6,8 @@ import (
 
 func (dw *DebugWIRE) ReadFuses() ([]byte, error) {
 	b := []byte{
-		avr.RFLB | avr.SELFPRGEN, // to set SPMCSR
-		0x00, 0x00,               // Z
+		avr.RFLB | avr.SPMEN, // to set SPMCSR
+		0x00, 0x00,           // Z
 	}
 
 	f := []byte{
