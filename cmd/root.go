@@ -57,22 +57,6 @@ var RootCmd = &cobra.Command{
 			logger.EnableDebug()
 		}
 
-		if serialPort == "" {
-			var err error
-			serialPort, err = debugwire.GuessDevice()
-			if err != nil {
-				return err
-			}
-		}
-
-		if baudrate == 0 {
-			var err error
-			baudrate, err = debugwire.GuessBaudrate(serialPort)
-			if err != nil {
-				return err
-			}
-		}
-
 		var err error
 		dw, err = debugwire.New(serialPort, baudrate)
 		if err != nil {

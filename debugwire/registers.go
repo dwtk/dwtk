@@ -4,61 +4,6 @@ import (
 	"golang.rgm.io/dwtk/avr"
 )
 
-func (dw *DebugWIRE) WriteRegisters(start byte, b []byte) error {
-	c := []byte{
-		0x66,
-		0xd0, 0x00, start, // ignoring high byte because registers are 0-31
-		0xd1, 0x00, start + byte(len(b)),
-		0xc2, 0x05,
-		0x20,
-	}
-	return dw.device.Write(append(c, b...))
-}
-
-func (dw *DebugWIRE) ReadRegisters(start byte, b []byte) error {
-	c := []byte{
-		0x66,
-		0xd0, 0x00, start, // ignoring high byte because registers are 0-31
-		0xd1, 0x00, start + byte(len(b)),
-		0xc2, 0x01,
-		0x20,
-	}
-	if err := dw.device.Write(c); err != nil {
-		return err
-	}
-	return dw.device.Read(b)
-}
-
-func (dw *DebugWIRE) SetPC(b uint16) error {
-	dw.afterBreak = false
-	b /= 2
-	c := []byte{
-		0xd0, byte(b >> 8), byte(b),
-	}
-	return dw.device.Write(c)
-}
-
-func (dw *DebugWIRE) GetPC() (uint16, error) {
-	if err := dw.device.Write([]byte{0xf0}); err != nil {
-		return 0, err
-	}
-
-	rv, err := dw.device.ReadWord()
-	if err != nil {
-		return 0, err
-	}
-
-	if dw.afterBreak {
-		if rv > 0 {
-			rv--
-		}
-		dw.afterBreak = false
-	}
-
-	rv *= 2
-	return rv, nil
-}
-
 func (dw *DebugWIRE) SetSP(b uint16) error {
 	c := []byte{
 		byte(b), byte(b >> 8),
