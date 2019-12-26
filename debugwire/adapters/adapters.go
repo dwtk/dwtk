@@ -3,6 +3,7 @@ package adapters
 import (
 	"context"
 
+	"golang.rgm.io/dwtk/debugwire/adapters/dwtk"
 	"golang.rgm.io/dwtk/debugwire/adapters/usbserial"
 )
 
@@ -38,5 +39,15 @@ type Adapter interface {
 }
 
 func New(serialPort string, baudrate uint32) (Adapter, error) {
+	if serialPort == "" {
+		adapter, err := dwtk.New(baudrate)
+		if err != nil {
+			return nil, err
+		}
+
+		if adapter != nil {
+			return adapter, nil
+		}
+	}
 	return usbserial.New(serialPort, baudrate)
 }
