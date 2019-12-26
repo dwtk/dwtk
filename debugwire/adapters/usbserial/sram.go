@@ -27,7 +27,7 @@ func (us *UsbSerialAdapter) ReadSRAM(start uint16, data []byte) error {
 		return err
 	}
 
-	l := uint16((len(data) * 2) + 1)
+	l := uint16(len(data) * 2)
 	c = []byte{
 		0x66,
 		0xd0, 0x00, 0x00,
