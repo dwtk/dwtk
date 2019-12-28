@@ -11,8 +11,6 @@ jobs:
         target:
           - distcheck
           - dist-linux-amd64
-          - dist-linux-armv6
-          - dist-linux-armv7
 
     steps:
       - name: Set up Go
