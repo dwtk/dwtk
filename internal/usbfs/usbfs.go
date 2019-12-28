@@ -132,12 +132,12 @@ func GetDevices(idVendor uint16, idProduct uint16, manufacturer string, product 
 
 func (d *Device) Open() error {
 	if d.open {
-		return fmt.Errorf("usb: device already open: %s", d.path)
+		return fmt.Errorf("usbfs: device already open: %s", d.path)
 	}
 
 	fd, err := unix.Open(d.path, unix.O_RDWR, 0600)
 	if err != nil {
-		return err
+		return fmt.Errorf("usbfs: %s", err)
 	}
 	d.fd = fd
 	d.open = true
@@ -149,12 +149,15 @@ func (d *Device) Close() error {
 		return nil
 	}
 	d.open = false
-	return unix.Close(d.fd)
+	if err := unix.Close(d.fd); err != nil {
+		return fmt.Errorf("usbfs: %s", err)
+	}
+	return nil
 }
 
 func (d *Device) control(direction byte, request byte, val uint16, idx uint16, data []byte) error {
 	if !d.open {
-		return fmt.Errorf("usb: device is not open: %s", d.path)
+		return fmt.Errorf("usbfs: device is not open: %s", d.path)
 	}
 	var dataPointer uintptr
 	if len(data) > 0 {
@@ -177,7 +180,7 @@ func (d *Device) control(direction byte, request byte, val uint16, idx uint16, d
 		uintptr(unsafe.Pointer(&req)),
 	)
 	if errno != 0 {
-		return fmt.Errorf("usb: %s", errno)
+		return fmt.Errorf("usbfs: %s", errno)
 	}
 	return nil
 }
