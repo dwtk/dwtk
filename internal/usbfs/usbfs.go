@@ -1,3 +1,5 @@
+// +build linux,386 linux,amd64 linux,arm linux,arm64
+
 package usbfs
 
 import (
@@ -158,6 +160,7 @@ func (d *Device) control(direction byte, request byte, val uint16, idx uint16, d
 	if len(data) > 0 {
 		dataPointer = uintptr(unsafe.Pointer(&data[0]))
 	}
+	// we need to fix dataPointer endianess in the (unlikely) case that we want to support big-endian platforms
 	req := ctrlReq{
 		USBRQ_TYPE_VENDOR | USBRQ_RCPT_DEVICE | direction,
 		request,
