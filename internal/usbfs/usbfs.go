@@ -21,14 +21,6 @@ const (
 	USBRQ_ENDPOINT_OUT = 0b00000000
 )
 
-type Device struct {
-	bus  uint16
-	dev  uint16
-	path string
-	open bool
-	fd   int
-}
-
 type ctrlReq struct {
 	ReqType uint8
 	Req     uint8
@@ -37,6 +29,26 @@ type ctrlReq struct {
 	Len     uint16
 	Timeout uint32
 	Data    uintptr
+}
+
+type Version struct {
+	major byte
+	minor byte
+}
+
+func (v *Version) String() string {
+	return fmt.Sprintf("%d.%02d", v.major, v.minor)
+}
+
+func (v *Version) Get() (byte, byte) {
+	return v.major, v.minor
+}
+
+type Device struct {
+	version *Version
+	path    string
+	open    bool
+	fd      int
 }
 
 func GetDevices(idVendor uint16, idProduct uint16, manufacturer string, product string) ([]*Device, error) {
@@ -94,13 +106,14 @@ func GetDevices(idVendor uint16, idProduct uint16, manufacturer string, product 
 			}
 		}
 
-		var busnum, devnum uint16
+		var busnum, devnum, bcdDevice uint16
 		for _, d := range []struct {
 			name string
 			val  *uint16
 		}{
 			{"busnum", &busnum},
 			{"devnum", &devnum},
+			{"bcdDevice", &bcdDevice},
 		} {
 			path := filepath.Join(rpath, d.name)
 			if _, err := os.Stat(path); err != nil {
@@ -119,15 +132,18 @@ func GetDevices(idVendor uint16, idProduct uint16, manufacturer string, product 
 		}
 
 		devices = append(devices, &Device{
-			bus:  uint16(busnum),
-			dev:  uint16(devnum),
-			path: fmt.Sprintf("/dev/bus/usb/%03d/%03d", busnum, devnum),
+			version: &Version{byte(bcdDevice / 100), byte(bcdDevice % 100)},
+			path:    fmt.Sprintf("/dev/bus/usb/%03d/%03d", busnum, devnum),
 		})
 
 		return nil
 	})
 
 	return devices, err
+}
+
+func (d *Device) GetVersion() *Version {
+	return d.version
 }
 
 func (d *Device) Open() error {

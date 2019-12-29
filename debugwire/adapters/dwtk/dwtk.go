@@ -79,7 +79,6 @@ func New(baudrate uint32) (*DwtkAdapter, error) {
 		return nil, fmt.Errorf("debugwire: dwtk: more than one dwtk device found. this is not supported")
 	}
 
-	logger.Debug.Print(" * Detected custom dwtk hardware")
 	rv := &DwtkAdapter{
 		device:     devices[0],
 		afterBreak: false,
@@ -87,6 +86,7 @@ func New(baudrate uint32) (*DwtkAdapter, error) {
 	if err := rv.device.Open(); err != nil {
 		return nil, err
 	}
+	logger.Debug.Printf(" * Detected dwtk-hardware %s", rv.device.GetVersion())
 
 	if baudrate == 0 {
 		rv.ubrr, err = rv.detectBaudrate()
@@ -122,5 +122,9 @@ func (dw *DwtkAdapter) Close() error {
 }
 
 func (dw *DwtkAdapter) Info() string {
-	return fmt.Sprintf("Using dwtk custom hardware\nBaud Rate: %d bps\nBaud Rate Register: 0x%04x\n", dw.baudrate, dw.ubrr)
+	return fmt.Sprintf("dwtk-hardware %s\n\nBaud Rate: %d bps\nBaud Rate Register: 0x%04x\n",
+		dw.device.GetVersion(),
+		dw.baudrate,
+		dw.ubrr,
+	)
 }
