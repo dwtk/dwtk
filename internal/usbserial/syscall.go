@@ -1,13 +1,27 @@
+// +build linux
+
 package usbserial
 
 import (
 	"bytes"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"golang.org/x/sys/unix"
 	"golang.rgm.io/dwtk/logger"
 )
+
+func ListDevices() ([]string, error) {
+	m, err := filepath.Glob("/dev/ttyUSB*")
+	if err != nil {
+		return nil, err
+	}
+	if m == nil {
+		return []string{}, nil
+	}
+	return m, nil
+}
 
 func open(portDevice string, baudrate uint32) (int, error) {
 	fd, err := unix.Open(portDevice, unix.O_RDWR, 0600)

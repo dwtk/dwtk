@@ -23,6 +23,9 @@ func New(device string, baudrate uint32) (*DebugWIRE, error) {
 	if err != nil {
 		return nil, err
 	}
+	if a == nil {
+		return nil, fmt.Errorf("debugwire: no device found")
+	}
 
 	rv := &DebugWIRE{
 		Timers: true,

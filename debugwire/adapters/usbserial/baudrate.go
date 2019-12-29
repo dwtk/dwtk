@@ -2,31 +2,11 @@ package usbserial
 
 import (
 	"fmt"
-	"path/filepath"
-	"strings"
 
-	"golang.rgm.io/dwtk/logger"
-	"golang.rgm.io/dwtk/usbserial"
+	"golang.rgm.io/dwtk/internal/usbserial"
 )
 
-func guessSerialPort() (string, error) {
-	matches, err := filepath.Glob("/dev/ttyUSB*")
-	if err != nil {
-		return "", err
-	}
-	if matches == nil {
-		return "", fmt.Errorf("debugwire: usbserial: no USB serial port found")
-	}
-	if len(matches) > 1 {
-		return "", fmt.Errorf("debugwire: usbserial: more than one USB serial port found: %s",
-			strings.Join(matches, ", "))
-	}
-
-	logger.Debug.Printf(" * Detected serial port: %s", matches[0])
-	return matches[0], nil
-}
-
-func guessBaudrate(serialPort string) (uint32, error) {
+func detectBaudrate(serialPort string) (uint32, error) {
 	// max supported mcu frequency is 20MHz, there are faster AVRs, but they
 	// provide better capabilities than debugwire. we want the faster baudrate
 	// possible
@@ -57,7 +37,6 @@ func guessBaudrate(serialPort string) (uint32, error) {
 		}
 
 		if c == 0x55 {
-			logger.Debug.Printf(" * Detected baudrate: %d\n", baudrate)
 			return baudrate, nil
 		}
 	}

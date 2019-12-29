@@ -2,8 +2,10 @@ package usbserial
 
 import (
 	"fmt"
+	"strings"
 
-	"golang.rgm.io/dwtk/usbserial"
+	"golang.rgm.io/dwtk/internal/usbserial"
+	"golang.rgm.io/dwtk/logger"
 )
 
 type UsbSerialAdapter struct {
@@ -16,18 +18,30 @@ type UsbSerialAdapter struct {
 func New(serialPort string, baudrate uint32) (*UsbSerialAdapter, error) {
 	var err error
 	if serialPort == "" {
-		serialPort, err = guessSerialPort()
+		devices, err := usbserial.ListDevices()
 		if err != nil {
 			return nil, err
 		}
+
+		if len(devices) == 0 {
+			return nil, nil
+		}
+		if len(devices) > 1 {
+			return nil, fmt.Errorf("debugwire: usbserial: more than one dwtk device found. this is not supported: %s",
+				strings.Join(devices, ", "))
+		}
+
+		logger.Debug.Printf(" * Detected serial port: %s", devices[0])
+		serialPort = devices[0]
 	}
 
 	if baudrate == 0 {
 		var err error
-		baudrate, err = guessBaudrate(serialPort)
+		baudrate, err = detectBaudrate(serialPort)
 		if err != nil {
 			return nil, err
 		}
+		logger.Debug.Printf(" * Detected baudrate: %d\n", baudrate)
 	}
 
 	u, err := usbserial.Open(serialPort, baudrate)
