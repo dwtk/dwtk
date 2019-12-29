@@ -5,7 +5,7 @@ import (
 )
 
 func (dw *DwtkAdapter) ubrrToBaudrate(ubrr uint16) (uint32, error) {
-	presc, freq, err := dw.GetBaudratePrescaler()
+	presc, freq, err := dw.getBaudratePrescaler()
 	if err != nil {
 		return 0, err
 	}
@@ -18,7 +18,7 @@ func (dw *DwtkAdapter) ubrrToBaudrate(ubrr uint16) (uint32, error) {
 }
 
 func (dw *DwtkAdapter) baudrateToUbrr(baudrate uint32) (uint16, error) {
-	presc, freq, err := dw.GetBaudratePrescaler()
+	presc, freq, err := dw.getBaudratePrescaler()
 	if err != nil {
 		return 0, err
 	}
@@ -30,7 +30,7 @@ func (dw *DwtkAdapter) baudrateToUbrr(baudrate uint32) (uint16, error) {
 	return uint16((uint32(freq)*1000000)/(uint32(presc)*baudrate)) - 1, nil
 }
 
-func (dw *DwtkAdapter) GetBaudratePrescaler() (byte, byte, error) {
+func (dw *DwtkAdapter) getBaudratePrescaler() (byte, byte, error) {
 	f := make([]byte, 2)
 	if err := dw.controlIn(cmdGetBaudratePrescaler, 0, 0, f); err != nil {
 		return 0, 0, err
@@ -38,7 +38,7 @@ func (dw *DwtkAdapter) GetBaudratePrescaler() (byte, byte, error) {
 	return f[0], f[1], nil
 }
 
-func (dw *DwtkAdapter) DetectBaudrate() (uint16, error) {
+func (dw *DwtkAdapter) detectBaudrate() (uint16, error) {
 	f := make([]byte, 2)
 	if err := dw.controlIn(cmdDetectBaudrate, 0, 0, f); err != nil {
 		return 0, err
@@ -46,6 +46,6 @@ func (dw *DwtkAdapter) DetectBaudrate() (uint16, error) {
 	return (uint16(f[0]) << 8) | uint16(f[1]), nil
 }
 
-func (dw *DwtkAdapter) SetBaudrate(baudrate uint16) error {
+func (dw *DwtkAdapter) setBaudrate(baudrate uint16) error {
 	return dw.controlIn(cmdSetBaudrate, baudrate, 0, nil)
 }

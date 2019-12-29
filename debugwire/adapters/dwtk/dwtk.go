@@ -89,7 +89,7 @@ func New(baudrate uint32) (*DwtkAdapter, error) {
 	}
 
 	if baudrate == 0 {
-		rv.ubrr, err = rv.DetectBaudrate()
+		rv.ubrr, err = rv.detectBaudrate()
 		if err != nil {
 			rv.Close()
 			return nil, err
@@ -101,7 +101,7 @@ func New(baudrate uint32) (*DwtkAdapter, error) {
 			return nil, err
 		}
 
-		if err := rv.SetBaudrate(rv.ubrr); err != nil {
+		if err := rv.setBaudrate(rv.ubrr); err != nil {
 			rv.Close()
 			return nil, err
 		}

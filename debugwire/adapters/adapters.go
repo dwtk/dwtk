@@ -9,7 +9,6 @@ import (
 
 type Adapter interface {
 	Close() error
-
 	Info() string
 
 	Disable() error
