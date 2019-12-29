@@ -41,7 +41,7 @@ func New(serialPort string, baudrate uint32) (*UsbSerialAdapter, error) {
 		if err != nil {
 			return nil, err
 		}
-		logger.Debug.Printf(" * Detected baudrate: %d\n", baudrate)
+		logger.Debug.Printf(" * Detected baudrate: %d", baudrate)
 	}
 
 	u, err := usbserial.Open(serialPort, baudrate)

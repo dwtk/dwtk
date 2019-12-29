@@ -107,7 +107,7 @@ func handlePacket(ctx context.Context, dw *debugwire.DebugWIRE, conn *tcpConn) e
 				return fmt.Errorf("gdbserver: packet: bad checksum, expected '0x%02x', got '0x%02x'", chkg[0], chk)
 			}
 
-			logger.Debug.Printf("$< command: %s\n", cmd)
+			logger.Debug.Printf("$< command: %s", cmd)
 
 			logger.Debug.Println("$> ack")
 			n, err := conn.Write([]byte{'+'})
@@ -134,7 +134,7 @@ func writePacket(conn *tcpConn, b []byte) error {
 		chk += b[i]
 	}
 
-	logger.Debug.Printf("$> command: %s\n", b)
+	logger.Debug.Printf("$> command: %s", b)
 	r := []byte(fmt.Sprintf("$%s#%02x", b, chk))
 
 	n := 0
