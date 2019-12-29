@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"golang.rgm.io/dwtk/internal/usbfs"
+	"golang.rgm.io/dwtk/logger"
 )
 
 const (
@@ -78,6 +79,7 @@ func New(baudrate uint32) (*DwtkAdapter, error) {
 		return nil, fmt.Errorf("debugwire: dwtk: more than one dwtk device found. this is not supported")
 	}
 
+	logger.Debug.Print(" * Detected custom dwtk hardware")
 	rv := &DwtkAdapter{
 		device:     devices[0],
 		afterBreak: false,
@@ -110,6 +112,7 @@ func New(baudrate uint32) (*DwtkAdapter, error) {
 		rv.Close()
 		return nil, err
 	}
+	logger.Debug.Printf(" * Actual baudrate: %d", rv.baudrate)
 
 	return rv, nil
 }
