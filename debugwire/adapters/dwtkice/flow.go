@@ -1,14 +1,14 @@
-package dwtk
+package dwtkice
 
-func (dw *DwtkAdapter) Go() error {
+func (dw *DwtkIceAdapter) Go() error {
 	return dw.controlIn(cmdGo, 0, 0, nil)
 }
 
-func (dw *DwtkAdapter) Step() error {
+func (dw *DwtkIceAdapter) Step() error {
 	return dw.controlIn(cmdStep, 0, 0, nil)
 }
 
-func (dw *DwtkAdapter) Continue(hwBreakpoint uint16, hwBreakpointSet bool, timers bool) error {
+func (dw *DwtkIceAdapter) Continue(hwBreakpoint uint16, hwBreakpointSet bool, timers bool) error {
 	// idx: byte 0 -> hw bp set
 	//      byte 1 -> timers
 	idx := uint16(0)

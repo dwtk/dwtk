@@ -1,11 +1,11 @@
-package dwtk
+package dwtkice
 
 import (
 	"context"
 	"time"
 )
 
-func (dw *DwtkAdapter) Wait(ctx context.Context, c chan bool) error {
+func (dw *DwtkIceAdapter) Wait(ctx context.Context, c chan bool) error {
 	f := make([]byte, 1)
 
 	for {

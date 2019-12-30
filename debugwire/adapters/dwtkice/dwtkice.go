@@ -1,4 +1,4 @@
-package dwtk
+package dwtkice
 
 import (
 	"fmt"
@@ -10,8 +10,8 @@ import (
 const (
 	VID          = 0x16c0
 	PID          = 0x05dc
-	Manufacturer = "dwtk.rgm.io"
-	Product      = "dwtk-hardware"
+	Manufacturer = "dwtk.github.io"
+	Product      = "dwtk-ice"
 )
 
 const (
@@ -62,14 +62,14 @@ var (
 	}
 )
 
-type DwtkAdapter struct {
+type DwtkIceAdapter struct {
 	device     *usbfs.Device
 	ubrr       uint16
 	baudrate   uint32
 	afterBreak bool
 }
 
-func New(baudrate uint32) (*DwtkAdapter, error) {
+func New(baudrate uint32) (*DwtkIceAdapter, error) {
 	devices, err := usbfs.GetDevices(VID, PID, Manufacturer, Product)
 	if err != nil {
 		return nil, err
@@ -78,17 +78,17 @@ func New(baudrate uint32) (*DwtkAdapter, error) {
 		return nil, nil
 	}
 	if len(devices) > 1 {
-		return nil, fmt.Errorf("debugwire: dwtk: more than one dwtk device found. this is not supported")
+		return nil, fmt.Errorf("debugwire: dwtk-ice: more than one dwtk-ice device found. this is not supported")
 	}
 
-	rv := &DwtkAdapter{
+	rv := &DwtkIceAdapter{
 		device:     devices[0],
 		afterBreak: false,
 	}
 	if err := rv.device.Open(); err != nil {
 		return nil, err
 	}
-	logger.Debug.Printf(" * Detected dwtk-hardware %s", rv.device.GetVersion())
+	logger.Debug.Printf(" * Detected dwtk-ice %s", rv.device.GetVersion())
 
 	if baudrate == 0 {
 		rv.ubrr, err = rv.detectBaudrate()
@@ -119,12 +119,12 @@ func New(baudrate uint32) (*DwtkAdapter, error) {
 	return rv, nil
 }
 
-func (dw *DwtkAdapter) Close() error {
+func (dw *DwtkIceAdapter) Close() error {
 	return dw.device.Close()
 }
 
-func (dw *DwtkAdapter) Info() string {
-	return fmt.Sprintf("dwtk-hardware %s\n\nBaud Rate: %d bps\nBaud Rate Register: 0x%04x\n",
+func (dw *DwtkIceAdapter) Info() string {
+	return fmt.Sprintf("dwtk-ice %s\n\nBaud Rate: %d bps\nBaud Rate Register: 0x%04x\n",
 		dw.device.GetVersion(),
 		dw.baudrate,
 		dw.ubrr,
