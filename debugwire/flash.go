@@ -2,8 +2,6 @@ package debugwire
 
 import (
 	"fmt"
-
-	"golang.rgm.io/dwtk/avr"
 )
 
 func (dw *DebugWIRE) WriteFlashPage(start uint16, b []byte) error {
@@ -28,74 +26,7 @@ func (dw *DebugWIRE) WriteFlashPage(start uint16, b []byte) error {
 		)
 	}
 
-	c := []byte{
-		avr.CTPB | avr.SPMEN,          // to set SPMCSR
-		byte(start), byte(start >> 8), // Z
-	}
-	if err := dw.WriteRegisters(29, c); err != nil {
-		return err
-	}
-	if err := dw.WriteInstruction(avr.OUT(dw.MCU.SPMCSR, 29)); err != nil {
-		return err
-	}
-	if err := dw.WriteInstruction(avr.SPM()); err != nil {
-		return err
-	}
-	if err := dw.SendBreak(); err != nil {
-		return err
-	}
-
-	c = []byte{
-		avr.PGERS | avr.SPMEN, // to set SPMCSR
-	}
-	if err := dw.WriteRegisters(29, c); err != nil {
-		return err
-	}
-	if err := dw.WriteInstruction(avr.OUT(dw.MCU.SPMCSR, 29)); err != nil {
-		return err
-	}
-	if err := dw.WriteInstruction(avr.SPM()); err != nil {
-		return err
-	}
-	if err := dw.SendBreak(); err != nil {
-		return err
-	}
-
-	c = []byte{
-		avr.SPMEN, // to set SPMCSR
-	}
-	if err := dw.WriteRegisters(29, c); err != nil {
-		return err
-	}
-	for i := 0; i < len(b); i += 2 {
-		if err := dw.WriteRegisters(0, []byte{b[i], b[i+1]}); err != nil {
-			return err
-		}
-		if err := dw.WriteInstruction(avr.OUT(dw.MCU.SPMCSR, 29)); err != nil {
-			return err
-		}
-		if err := dw.WriteInstruction(avr.SPM()); err != nil {
-			return err
-		}
-		if err := dw.WriteInstruction(avr.ADIW(30, 2)); err != nil {
-			return err
-		}
-	}
-
-	c = []byte{
-		avr.PGWRT | avr.SPMEN,         // to set SPMCSR
-		byte(start), byte(start >> 8), // Z
-	}
-	if err := dw.WriteRegisters(29, c); err != nil {
-		return err
-	}
-	if err := dw.WriteInstruction(avr.OUT(dw.MCU.SPMCSR, 29)); err != nil {
-		return err
-	}
-	if err := dw.WriteInstruction(avr.SPM()); err != nil {
-		return err
-	}
-	return dw.SendBreak()
+	return dw.adapter.WriteFlashPage(start, b)
 }
 
 func (dw *DebugWIRE) WriteFlashInstruction(start uint16, inst uint16) error {

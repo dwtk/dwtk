@@ -23,7 +23,7 @@ func (dw *DebugWIRE) ReadFuses() ([]byte, error) {
 			}
 		}
 
-		if err := dw.WriteInstruction(avr.OUT(dw.MCU.SPMCSR, 29)); err != nil {
+		if err := dw.WriteInstruction(avr.OUT(avr.SPMCSR, 29)); err != nil {
 			return nil, err
 		}
 

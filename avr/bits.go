@@ -16,7 +16,8 @@ const (
 )
 
 const (
-	SPL  = 0x5d
-	SPH  = 0x5e
-	SREG = 0x5f
+	SPMCSR = 0x37
+	SPL    = 0x5d
+	SPH    = 0x5e
+	SREG   = 0x5f
 )

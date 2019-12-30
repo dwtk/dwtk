@@ -35,6 +35,7 @@ type Adapter interface {
 	ReadSRAM(start uint16, data []byte) error
 
 	ReadFlash(start uint16, data []byte) error
+	WriteFlashPage(start uint16, data []byte) error
 }
 
 func New(serialPort string, baudrate uint32) (Adapter, error) {

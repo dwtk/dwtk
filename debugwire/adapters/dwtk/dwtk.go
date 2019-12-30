@@ -34,6 +34,7 @@ const (
 	cmdRegisters
 	cmdSRAM
 	cmdReadFlash
+	cmdWriteFlashPage
 )
 
 var (
@@ -57,6 +58,7 @@ var (
 		cmdRegisters:            "cmdRegisters",
 		cmdSRAM:                 "cmdSRAM",
 		cmdReadFlash:            "cmdReadFlash",
+		cmdWriteFlashPage:       "cmdWriteFlashPage",
 	}
 )
 
