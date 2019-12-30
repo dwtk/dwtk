@@ -8,10 +8,8 @@ import (
 )
 
 const (
-	VID          = 0x16c0
-	PID          = 0x05dc
-	Manufacturer = "dwtk.github.io"
-	Product      = "dwtk-ice"
+	VID = 0x1d50 // OpenMoko, Inc.
+	PID = 0x614c // dwtk In-Circuit Emulator
 )
 
 const (
@@ -70,7 +68,7 @@ type DwtkIceAdapter struct {
 }
 
 func New(baudrate uint32) (*DwtkIceAdapter, error) {
-	devices, err := usbfs.GetDevices(VID, PID, Manufacturer, Product)
+	devices, err := usbfs.GetDevices(VID, PID)
 	if err != nil {
 		return nil, err
 	}

@@ -51,7 +51,7 @@ type Device struct {
 	fd      int
 }
 
-func GetDevices(idVendor uint16, idProduct uint16, manufacturer string, product string) ([]*Device, error) {
+func GetDevices(idVendor uint16, idProduct uint16) ([]*Device, error) {
 	devices := []*Device{}
 
 	err := filepath.Walk("/sys/bus/usb/devices", func(path string, info os.FileInfo, err error) error {
@@ -70,13 +70,10 @@ func GetDevices(idVendor uint16, idProduct uint16, manufacturer string, product 
 
 		for _, d := range []struct {
 			name     string
-			toUint16 bool
-			expected interface{}
+			expected uint16
 		}{
-			{"idVendor", true, idVendor},
-			{"idProduct", true, idProduct},
-			{"manufacturer", false, manufacturer},
-			{"product", false, product},
+			{"idVendor", idVendor},
+			{"idProduct", idProduct},
 		} {
 			path := filepath.Join(rpath, d.name)
 			_, err := os.Stat(path)
@@ -90,19 +87,12 @@ func GetDevices(idVendor uint16, idProduct uint16, manufacturer string, product 
 			if err != nil {
 				return err
 			}
-			valS := strings.TrimSpace(string(b))
-			if d.toUint16 {
-				valI, err := strconv.ParseUint(valS, 16, 16)
-				if err != nil {
-					return err
-				}
-				if uint16(valI) != d.expected.(uint16) {
-					return nil
-				}
-			} else {
-				if valS != d.expected.(string) {
-					return nil
-				}
+			valI, err := strconv.ParseUint(strings.TrimSpace(string(b)), 16, 16)
+			if err != nil {
+				return err
+			}
+			if uint16(valI) != d.expected {
+				return nil
 			}
 		}
 
