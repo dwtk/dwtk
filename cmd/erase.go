@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	"golang.rgm.io/dwtk/firmware"
 )
 
 func init() {
@@ -17,16 +16,11 @@ var EraseCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		noReset = true
 
-		f, err := firmware.NewEmpty(dw.MCU)
-		if err != nil {
-			return err
-		}
-
-		pages := f.SplitPages()
-
-		for i, page := range pages {
-			cmd.Printf("Erasing page 0x%04x (%d/%d) ...\n", page.Address, i+1, len(pages))
-			if err := dw.WriteFlashPage(page.Address, page.Data); err != nil {
+		numPages := dw.MCU.FlashSize / uint16(dw.MCU.FlashPageSize)
+		for i := uint16(0); i < numPages; i++ {
+			address := i * dw.MCU.FlashPageSize
+			cmd.Printf("Erasing page 0x%04x (%d/%d) ...\n", address, i+1, numPages)
+			if err := dw.EraseFlashPage(address); err != nil {
 				return err
 			}
 		}

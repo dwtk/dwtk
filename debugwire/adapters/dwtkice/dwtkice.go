@@ -33,6 +33,7 @@ const (
 	cmdSRAM
 	cmdReadFlash
 	cmdWriteFlashPage
+	cmdEraseFlashPage
 )
 
 var (

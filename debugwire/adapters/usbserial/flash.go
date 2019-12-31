@@ -22,19 +22,7 @@ func (us *UsbSerialAdapter) WriteFlashPage(start uint16, b []byte) error {
 		return err
 	}
 
-	c = []byte{
-		avr.PGERS | avr.SPMEN, // to set SPMCSR
-	}
-	if err := us.WriteRegisters(29, c); err != nil {
-		return err
-	}
-	if err := us.WriteInstruction(avr.OUT(avr.SPMCSR, 29)); err != nil {
-		return err
-	}
-	if err := us.WriteInstruction(avr.SPM()); err != nil {
-		return err
-	}
-	if err := us.SendBreak(); err != nil {
+	if err := us.eraseFlashPage(0, false); err != nil {
 		return err
 	}
 
@@ -73,6 +61,32 @@ func (us *UsbSerialAdapter) WriteFlashPage(start uint16, b []byte) error {
 		return err
 	}
 	return us.SendBreak()
+}
+
+func (us *UsbSerialAdapter) eraseFlashPage(start uint16, setStart bool) error {
+	c := []byte{
+		avr.PGERS | avr.SPMEN, // to set SPMCSR
+	}
+	if setStart {
+		c = append(c, byte(start), byte(start>>8))
+	}
+	if err := us.WriteRegisters(29, c); err != nil {
+		return err
+	}
+	if err := us.WriteInstruction(avr.OUT(avr.SPMCSR, 29)); err != nil {
+		return err
+	}
+	if err := us.WriteInstruction(avr.SPM()); err != nil {
+		return err
+	}
+	if err := us.SendBreak(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (us *UsbSerialAdapter) EraseFlashPage(start uint16) error {
+	return us.eraseFlashPage(start, true)
 }
 
 func (us *UsbSerialAdapter) ReadFlash(start uint16, b []byte) error {

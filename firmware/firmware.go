@@ -20,23 +20,6 @@ type Firmware struct {
 	MCU  *avr.MCU
 }
 
-func NewEmpty(mcu *avr.MCU) (*Firmware, error) {
-	if mcu == nil {
-		return nil, fmt.Errorf("firmware: MCU must be set")
-	}
-
-	data := make([]byte, mcu.FlashSize)
-	for i := range data {
-		data[i] = 0xff
-	}
-
-	// not using NewFromData because we know that our "firmware" size is safe
-	return &Firmware{
-		MCU:  mcu,
-		Data: data,
-	}, nil
-}
-
 func NewFromData(data []byte, mcu *avr.MCU) (*Firmware, error) {
 	if mcu == nil {
 		return nil, fmt.Errorf("firmware: MCU must be set")
