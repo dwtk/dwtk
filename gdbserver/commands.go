@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"golang.rgm.io/dwtk/debugwire"
+	"github.com/dwtk/dwtk/debugwire"
 )
 
 type detachErr struct{}

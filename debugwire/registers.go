@@ -1,7 +1,7 @@
 package debugwire
 
 import (
-	"golang.rgm.io/dwtk/avr"
+	"github.com/dwtk/dwtk/avr"
 )
 
 func (dw *DebugWIRE) SetSP(b uint16) error {

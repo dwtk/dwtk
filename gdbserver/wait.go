@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"golang.rgm.io/dwtk/debugwire"
-	"golang.rgm.io/dwtk/wait"
+	"github.com/dwtk/dwtk/debugwire"
+	"github.com/dwtk/dwtk/wait"
 )
 
 func waitForDwOrGdb(ctx context.Context, dw *debugwire.DebugWIRE, conn *tcpConn) ([]byte, error) {

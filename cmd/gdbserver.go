@@ -1,8 +1,8 @@
 package cmd
 
 import (
+	"github.com/dwtk/dwtk/gdbserver"
 	"github.com/spf13/cobra"
-	"golang.rgm.io/dwtk/gdbserver"
 )
 
 var (

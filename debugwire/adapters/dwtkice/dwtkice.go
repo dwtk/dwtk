@@ -3,8 +3,8 @@ package dwtkice
 import (
 	"fmt"
 
-	"golang.rgm.io/dwtk/internal/usbfs"
-	"golang.rgm.io/dwtk/logger"
+	"github.com/dwtk/dwtk/internal/usbfs"
+	"github.com/dwtk/dwtk/logger"
 )
 
 const (

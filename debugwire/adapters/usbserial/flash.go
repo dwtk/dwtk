@@ -1,7 +1,7 @@
 package usbserial
 
 import (
-	"golang.rgm.io/dwtk/avr"
+	"github.com/dwtk/dwtk/avr"
 )
 
 func (us *UsbSerialAdapter) WriteFlashPage(start uint16, b []byte) error {

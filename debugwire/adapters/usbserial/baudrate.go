@@ -3,7 +3,7 @@ package usbserial
 import (
 	"fmt"
 
-	"golang.rgm.io/dwtk/internal/usbserial"
+	"github.com/dwtk/dwtk/internal/usbserial"
 )
 
 func detectBaudrate(serialPort string) (uint32, error) {

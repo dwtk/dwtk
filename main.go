@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"golang.rgm.io/dwtk/cmd"
+	"github.com/dwtk/dwtk/cmd"
 )
 
 func main() {

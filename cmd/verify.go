@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
+	"github.com/dwtk/dwtk/firmware"
 	"github.com/spf13/cobra"
-	"golang.rgm.io/dwtk/firmware"
 )
 
 func init() {

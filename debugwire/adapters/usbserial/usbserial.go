@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"golang.rgm.io/dwtk/internal/usbserial"
-	"golang.rgm.io/dwtk/logger"
+	"github.com/dwtk/dwtk/internal/usbserial"
+	"github.com/dwtk/dwtk/logger"
 )
 
 type UsbSerialAdapter struct {

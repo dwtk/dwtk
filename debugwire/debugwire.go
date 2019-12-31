@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"golang.rgm.io/dwtk/avr"
-	"golang.rgm.io/dwtk/debugwire/adapters"
+	"github.com/dwtk/dwtk/avr"
+	"github.com/dwtk/dwtk/debugwire/adapters"
 )
 
 type DebugWIRE struct {

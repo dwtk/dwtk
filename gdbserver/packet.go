@@ -5,8 +5,8 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"golang.rgm.io/dwtk/debugwire"
-	"golang.rgm.io/dwtk/logger"
+	"github.com/dwtk/dwtk/debugwire"
+	"github.com/dwtk/dwtk/logger"
 )
 
 type packetState uint8

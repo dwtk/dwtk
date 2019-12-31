@@ -1,4 +1,4 @@
-module golang.rgm.io/dwtk
+module github.com/dwtk/dwtk
 
 go 1.13
 

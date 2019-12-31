@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"golang.rgm.io/dwtk/wait"
+	"github.com/dwtk/dwtk/wait"
 )
 
 type UsbSerial struct {

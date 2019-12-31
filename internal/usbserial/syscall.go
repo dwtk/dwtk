@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/dwtk/dwtk/logger"
 	"golang.org/x/sys/unix"
-	"golang.rgm.io/dwtk/logger"
 )
 
 func ListDevices() ([]string, error) {

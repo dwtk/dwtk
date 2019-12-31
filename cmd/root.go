@@ -3,10 +3,10 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/dwtk/dwtk/debugwire"
+	"github.com/dwtk/dwtk/logger"
+	"github.com/dwtk/dwtk/version"
 	"github.com/spf13/cobra"
-	"golang.rgm.io/dwtk/debugwire"
-	"golang.rgm.io/dwtk/logger"
-	"golang.rgm.io/dwtk/version"
 )
 
 var (

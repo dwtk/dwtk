@@ -3,8 +3,8 @@ package adapters
 import (
 	"context"
 
-	"golang.rgm.io/dwtk/debugwire/adapters/dwtkice"
-	"golang.rgm.io/dwtk/debugwire/adapters/usbserial"
+	"github.com/dwtk/dwtk/debugwire/adapters/dwtkice"
+	"github.com/dwtk/dwtk/debugwire/adapters/usbserial"
 )
 
 type Adapter interface {

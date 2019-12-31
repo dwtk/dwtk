@@ -5,9 +5,9 @@ import (
 	"math"
 	"os"
 
-	"golang.rgm.io/dwtk/avr"
-	"golang.rgm.io/dwtk/firmware/elf"
-	"golang.rgm.io/dwtk/firmware/hex"
+	"github.com/dwtk/dwtk/avr"
+	"github.com/dwtk/dwtk/firmware/elf"
+	"github.com/dwtk/dwtk/firmware/hex"
 )
 
 type Page struct {

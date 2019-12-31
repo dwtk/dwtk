@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"golang.rgm.io/dwtk/logger"
+	"github.com/dwtk/dwtk/logger"
 )
 
 var (

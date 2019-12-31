@@ -6,7 +6,7 @@ import (
 	"net"
 	"os"
 
-	"golang.rgm.io/dwtk/wait"
+	"github.com/dwtk/dwtk/wait"
 )
 
 type tcpConn struct {

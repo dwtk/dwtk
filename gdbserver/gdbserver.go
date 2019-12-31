@@ -9,8 +9,8 @@ import (
 	"os/signal"
 	"strings"
 
+	"github.com/dwtk/dwtk/debugwire"
 	"golang.org/x/sys/unix"
-	"golang.rgm.io/dwtk/debugwire"
 )
 
 func ListenAndServe(addr string, dw *debugwire.DebugWIRE) error {

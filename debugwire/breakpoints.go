@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"golang.rgm.io/dwtk/avr"
+	"github.com/dwtk/dwtk/avr"
 )
 
 func (dw *DebugWIRE) SetHwBreakpoint(addr uint16) bool {
