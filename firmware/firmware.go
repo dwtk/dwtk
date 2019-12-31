@@ -76,8 +76,12 @@ func (f *Firmware) SplitPages() []*Page {
 	for i := uint16(0); i < n; i++ {
 		c := make([]byte, f.MCU.FlashPageSize)
 		addr := i * f.MCU.FlashPageSize
-		for j := uint16(0); j < f.MCU.FlashPageSize && (addr+j) < uint16(len(f.Data)); j++ {
+		var j uint16
+		for j = 0; j < f.MCU.FlashPageSize && (addr+j) < uint16(len(f.Data)); j++ {
 			c[j] = f.Data[addr+j]
+		}
+		for ; j < f.MCU.FlashPageSize; j++ {
+			c[j] = 0xff // empty = 0xff
 		}
 		pages = append(pages, &Page{
 			Address: addr,
