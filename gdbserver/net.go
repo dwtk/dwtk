@@ -6,7 +6,7 @@ import (
 	"net"
 	"os"
 
-	"github.com/dwtk/dwtk/wait"
+	"github.com/dwtk/dwtk/internal/wait"
 )
 
 type tcpConn struct {

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/dwtk/dwtk/logger"
+	"github.com/dwtk/dwtk/internal/logger"
 )
 
 var (

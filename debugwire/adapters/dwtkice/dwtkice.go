@@ -3,8 +3,8 @@ package dwtkice
 import (
 	"fmt"
 
+	"github.com/dwtk/dwtk/internal/logger"
 	"github.com/dwtk/dwtk/internal/usbfs"
-	"github.com/dwtk/dwtk/logger"
 )
 
 const (

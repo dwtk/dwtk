@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/dwtk/dwtk/debugwire"
-	"github.com/dwtk/dwtk/wait"
+	"github.com/dwtk/dwtk/internal/wait"
 )
 
 func waitForDwOrGdb(ctx context.Context, dw *debugwire.DebugWIRE, conn *tcpConn) ([]byte, error) {

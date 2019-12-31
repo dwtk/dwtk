@@ -5,4 +5,4 @@ targets:
     dist-linux-amd64:
         task_args:
             - -ldflags
-            - "-X github.com/dwtk/dwtk/version.Version={{.Version}}"
+            - "-X github.com/dwtk/dwtk/internal/version.Version={{.Version}}"

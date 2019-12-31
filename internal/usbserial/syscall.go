@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/dwtk/dwtk/logger"
+	"github.com/dwtk/dwtk/internal/logger"
 	"golang.org/x/sys/unix"
 )
 

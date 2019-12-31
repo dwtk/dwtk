@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/dwtk/dwtk/internal/logger"
 	"github.com/dwtk/dwtk/internal/usbserial"
-	"github.com/dwtk/dwtk/logger"
 )
 
 type UsbSerialAdapter struct {

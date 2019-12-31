@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/dwtk/dwtk/debugwire"
-	"github.com/dwtk/dwtk/logger"
-	"github.com/dwtk/dwtk/version"
+	"github.com/dwtk/dwtk/internal/logger"
+	"github.com/dwtk/dwtk/internal/version"
 	"github.com/spf13/cobra"
 )
 

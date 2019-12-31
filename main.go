@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/dwtk/dwtk/cmd"
+	"github.com/dwtk/dwtk/internal/cmd"
 )
 
 func main() {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/dwtk/dwtk/wait"
+	"github.com/dwtk/dwtk/internal/wait"
 )
 
 type UsbSerial struct {
