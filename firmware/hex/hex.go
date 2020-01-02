@@ -33,9 +33,11 @@ func Parse(path string) ([]byte, error) {
 
 	max := uint64(0)
 	progs := make(map[uint64][]byte)
-	line := 1
+	line := 0
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
+		line++
+
 		t := scanner.Text()
 		if len(t) == 0 {
 			continue
@@ -59,7 +61,7 @@ func Parse(path string) ([]byte, error) {
 		for _, i := range b[:len(b)-1] {
 			calculated += i
 		}
-		if uint16(calculated)+uint16(expected) != 0x0100 {
+		if calculated+expected != 0x00 {
 			return nil, &parseError{fmt.Sprintf("firmware: hex: bad checksum for line %d", line)}
 		}
 
