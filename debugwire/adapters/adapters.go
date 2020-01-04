@@ -50,5 +50,13 @@ func New(serialPort string, baudrate uint32) (Adapter, error) {
 			return adapter, nil
 		}
 	}
-	return usbserial.New(serialPort, baudrate)
+	adapter, err := usbserial.New(serialPort, baudrate)
+	if err != nil {
+		return nil, err
+	}
+	if adapter != nil {
+		return adapter, nil
+	}
+
+	return nil, nil
 }
