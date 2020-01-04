@@ -2,6 +2,7 @@ package adapters
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/dwtk/dwtk/debugwire/adapters/dwtkice"
 	"github.com/dwtk/dwtk/debugwire/adapters/usbserial"
@@ -54,9 +55,8 @@ func New(serialPort string, baudrate uint32) (Adapter, error) {
 	if err != nil {
 		return nil, err
 	}
-	if adapter != nil {
-		return adapter, nil
+	if adapter == nil {
+		return nil, fmt.Errorf("debugwire: adapters: no device found")
 	}
-
-	return nil, nil
+	return adapter, nil
 }
