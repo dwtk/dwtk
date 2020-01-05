@@ -27,7 +27,12 @@ func (dw *DwtkIceAdapter) baudrateToUbrr(baudrate uint32) (uint16, error) {
 		return 0, fmt.Errorf("debugwire: dwtk-ice: got invalid oscillator frequency")
 	}
 
-	return uint16((uint32(freq)*1000000)/(uint32(presc)*baudrate)) - 1, nil
+	tmp := uint32(((uint64(freq) * 10000000) / (uint64(presc) * uint64(baudrate))) - 10)
+	ubrr := uint16(tmp / 10)
+	if tmp%10 >= 5 {
+		ubrr++
+	}
+	return ubrr, nil
 }
 
 func (dw *DwtkIceAdapter) getBaudratePrescaler() (byte, byte, error) {
