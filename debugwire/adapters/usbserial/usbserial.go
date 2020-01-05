@@ -49,12 +49,19 @@ func New(serialPort string, baudrate uint32) (*UsbSerialAdapter, error) {
 		return nil, err
 	}
 
-	return &UsbSerialAdapter{
+	rv := &UsbSerialAdapter{
 		device:     u,
 		serialPort: serialPort,
 		baudrate:   baudrate,
 		afterBreak: false,
-	}, nil
+	}
+
+	if err := rv.SendBreak(); err != nil {
+		rv.Close()
+		return nil, err
+	}
+
+	return rv, nil
 }
 
 func (us *UsbSerialAdapter) Close() error {
