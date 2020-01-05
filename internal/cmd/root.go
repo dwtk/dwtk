@@ -15,6 +15,7 @@ var (
 
 	serialPort string
 	baudrate   uint32
+	frequency  float32
 	debug      bool
 )
 
@@ -32,6 +33,13 @@ func init() {
 		"b",
 		0,
 		"serial port baudrate (e.g. 62500) (Default: detect)",
+	)
+	RootCmd.PersistentFlags().Float32VarP(
+		&frequency,
+		"frequency",
+		"f",
+		0,
+		"target MCU frequency in MHz (e.g. 16) (Default: unset)",
 	)
 	RootCmd.PersistentFlags().BoolVarP(
 		&debug,
@@ -55,6 +63,14 @@ var RootCmd = &cobra.Command{
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		if debug {
 			logger.EnableDebug()
+		}
+
+		if baudrate != 0 && frequency != 0 {
+			return fmt.Errorf("'frequency' and 'baudrate' arguments are mutually exclusive")
+		}
+
+		if frequency != 0 {
+			baudrate = uint32(frequency * 1000000 / 128)
 		}
 
 		var err error
