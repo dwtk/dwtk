@@ -6,3 +6,11 @@ targets:
         task_args:
             - -ldflags
             - "-X github.com/dwtk/dwtk/internal/version.Version={{.Version}}"
+    dist-linux-armv6:
+        task_args:
+            - -ldflags
+            - "-X github.com/dwtk/dwtk/internal/version.Version={{.Version}}"
+    dist-linux-armv7:
+        task_args:
+            - -ldflags
+            - "-X github.com/dwtk/dwtk/internal/version.Version={{.Version}}"
