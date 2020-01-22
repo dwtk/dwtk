@@ -34,6 +34,7 @@ const (
 	cmdReadFlash
 	cmdWriteFlashPage
 	cmdEraseFlashPage
+	cmdReadFuses
 )
 
 var (
@@ -58,6 +59,7 @@ var (
 		cmdSRAM:                 "cmdSRAM",
 		cmdReadFlash:            "cmdReadFlash",
 		cmdWriteFlashPage:       "cmdWriteFlashPage",
+		cmdReadFuses:            "cmdReadFuses",
 	}
 )
 

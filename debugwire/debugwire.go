@@ -119,3 +119,7 @@ func (dw *DebugWIRE) WriteSRAM(start uint16, data []byte) error {
 func (dw *DebugWIRE) ReadSRAM(start uint16, data []byte) error {
 	return dw.adapter.ReadSRAM(start, data)
 }
+
+func (dw *DebugWIRE) ReadFuses() ([]byte, error) {
+	return dw.adapter.ReadFuses()
+}
