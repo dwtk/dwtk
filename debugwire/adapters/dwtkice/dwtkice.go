@@ -1,6 +1,7 @@
 package dwtkice
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/dwtk/dwtk/internal/logger"
@@ -54,6 +55,15 @@ var (
 		cmdReadFlash:        "cmdReadFlash",
 		cmdWriteFlashPage:   "cmdWriteFlashPage",
 		cmdReadFuses:        "cmdReadFuses",
+	}
+
+	iceErrors = map[uint8]error{
+		1: errors.New("debugwire: dwtk-ice: baudrate detection failed"),
+		2: errors.New("debugwire: dwtk-ice: target detection failed"),
+		3: errors.New("debugwire: dwtk-ice: got unexpected target device"),
+		4: errors.New("debugwire: dwtk-ice: got unexpected byte echoed back"),
+		5: errors.New("debugwire: dwtk-ice: got unexpected break value"),
+		6: errors.New("debugwire: dwtk-ice: read/write data is too large"),
 	}
 )
 
@@ -119,6 +129,95 @@ Baudrate Register: 0x%04x
 	)
 }
 
+func (dw *DwtkIceAdapter) Disable() error {
+	return dw.controlIn(cmdDisable, 0, 0, nil)
+}
+
+func (dw *DwtkIceAdapter) Reset() error {
+	return dw.controlIn(cmdReset, 0, 0, nil)
+}
+
 func (dw *DwtkIceAdapter) GetSignature() (uint16, error) {
 	return dw.signature, nil
+}
+
+func (dw *DwtkIceAdapter) SendBreak() error {
+	return dw.controlIn(cmdSendBreak, 0, 0, nil)
+}
+
+func (dw *DwtkIceAdapter) RecvBreak() error {
+	return dw.controlIn(cmdRecvBreak, 0, 0, nil)
+}
+
+func (dw *DwtkIceAdapter) Go() error {
+	return dw.controlIn(cmdGo, 0, 0, nil)
+}
+
+func (dw *DwtkIceAdapter) Step() error {
+	return dw.controlIn(cmdStep, 0, 0, nil)
+}
+
+func (dw *DwtkIceAdapter) Continue(hwBreakpoint uint16, hwBreakpointSet bool, timers bool) error {
+	// idx: byte 0 -> hw bp set
+	//      byte 1 -> timers
+	idx := uint16(0)
+	if hwBreakpointSet {
+		idx |= (1 << 0)
+	}
+	if timers {
+		idx |= (1 << 1)
+	}
+	return dw.controlIn(cmdContinue, hwBreakpoint, idx, nil)
+}
+
+func (dw *DwtkIceAdapter) WriteInstruction(inst uint16) error {
+	return dw.controlIn(cmdWriteInstruction, inst, 0, nil)
+}
+
+func (dw *DwtkIceAdapter) WriteRegisters(start byte, regs []byte) error {
+	return dw.controlOut(cmdRegisters, uint16(start), 0, regs)
+}
+
+func (dw *DwtkIceAdapter) ReadRegisters(start byte, regs []byte) error {
+	return dw.controlIn(cmdRegisters, uint16(start), 0, regs)
+}
+
+func (dw *DwtkIceAdapter) SetPC(pc uint16) error {
+	return dw.controlIn(cmdSetPC, pc, 0, nil)
+}
+
+func (dw *DwtkIceAdapter) GetPC() (uint16, error) {
+	f := make([]byte, 2)
+	if err := dw.controlIn(cmdGetPC, 0, 0, f); err != nil {
+		return 0, err
+	}
+	return (uint16(f[0]) << 8) | uint16(f[1]), nil
+}
+
+func (dw *DwtkIceAdapter) WriteSRAM(start uint16, data []byte) error {
+	return dw.controlOut(cmdSRAM, start, 0, data)
+}
+
+func (dw *DwtkIceAdapter) ReadSRAM(start uint16, data []byte) error {
+	return dw.controlIn(cmdSRAM, start, 0, data)
+}
+
+func (dw *DwtkIceAdapter) WriteFlashPage(start uint16, data []byte) error {
+	return dw.controlOut(cmdWriteFlashPage, start, 0, data)
+}
+
+func (dw *DwtkIceAdapter) EraseFlashPage(start uint16) error {
+	return dw.controlIn(cmdEraseFlashPage, start, 0, nil)
+}
+
+func (dw *DwtkIceAdapter) ReadFlash(start uint16, data []byte) error {
+	return dw.controlIn(cmdReadFlash, start, 0, data)
+}
+
+func (dw *DwtkIceAdapter) ReadFuses() ([]byte, error) {
+	f := make([]byte, 4)
+	if err := dw.controlIn(cmdReadFuses, 0, 0, f); err != nil {
+		return nil, err
+	}
+	return f, nil
 }
