@@ -7,11 +7,3 @@ func (dw *DwtkIceAdapter) Disable() error {
 func (dw *DwtkIceAdapter) Reset() error {
 	return dw.controlIn(cmdReset, 0, 0, nil)
 }
-
-func (dw *DwtkIceAdapter) GetSignature() (uint16, error) {
-	f := make([]byte, 2)
-	if err := dw.controlIn(cmdGetSignature, 0, 0, f); err != nil {
-		return 0, err
-	}
-	return (uint16(f[0]) << 8) | uint16(f[1]), nil
-}

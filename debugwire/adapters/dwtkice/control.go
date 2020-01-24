@@ -10,9 +10,11 @@ import (
 var (
 	iceErrors = map[uint8]error{
 		1: errors.New("debugwire: dwtk-ice: baudrate detection failed"),
-		2: errors.New("debugwire: dwtk-ice: got unexpected byte echoed back"),
-		3: errors.New("debugwire: dwtk-ice: got unexpected break value"),
-		4: errors.New("debugwire: dwtk-ice: read/write data is too large"),
+		2: errors.New("debugwire: dwtk-ice: target detection failed"),
+		3: errors.New("debugwire: dwtk-ice: got unexpected target device"),
+		4: errors.New("debugwire: dwtk-ice: got unexpected byte echoed back"),
+		5: errors.New("debugwire: dwtk-ice: got unexpected break value"),
+		6: errors.New("debugwire: dwtk-ice: read/write data is too large"),
 	}
 )
 

@@ -44,7 +44,7 @@ type Adapter interface {
 
 func New(serialPort string, baudrate uint32) (Adapter, error) {
 	if serialPort == "" {
-		adapter, err := dwtkice.New(baudrate)
+		adapter, err := dwtkice.New()
 		if err != nil {
 			return nil, err
 		}

@@ -13,13 +13,10 @@ const (
 )
 
 const (
-	cmdGetError = iota + 0x40
-	cmdGetBaudratePrescaler
-	cmdDetectBaudrate
-	cmdSetBaudrate
+	cmdGetError = iota + 1
+	cmdInit
 	cmdDisable
 	cmdReset
-	cmdGetSignature
 	cmdSendBreak
 	cmdRecvBreak
 	cmdGo
@@ -39,38 +36,36 @@ const (
 
 var (
 	cmds = map[byte]string{
-		cmdGetError:             "cmdGetError",
-		cmdGetBaudratePrescaler: "cmdGetBaudratePrescaler",
-		cmdDetectBaudrate:       "cmdDetectBaudrate",
-		cmdSetBaudrate:          "cmdSetBaudrate",
-		cmdDisable:              "cmdDisable",
-		cmdReset:                "cmdReset",
-		cmdGetSignature:         "cmdGetSignature",
-		cmdSendBreak:            "cmdSendBreak",
-		cmdRecvBreak:            "cmdRecvBreak",
-		cmdGo:                   "cmdGo",
-		cmdStep:                 "cmdStep",
-		cmdContinue:             "cmdContinue",
-		cmdWait:                 "cmdWait",
-		cmdWriteInstruction:     "cmdWriteInstruction",
-		cmdSetPC:                "cmdSetPC",
-		cmdGetPC:                "cmdGetPC",
-		cmdRegisters:            "cmdRegisters",
-		cmdSRAM:                 "cmdSRAM",
-		cmdReadFlash:            "cmdReadFlash",
-		cmdWriteFlashPage:       "cmdWriteFlashPage",
-		cmdReadFuses:            "cmdReadFuses",
+		cmdGetError:         "cmdGetError",
+		cmdInit:             "cmdInit",
+		cmdDisable:          "cmdDisable",
+		cmdReset:            "cmdReset",
+		cmdSendBreak:        "cmdSendBreak",
+		cmdRecvBreak:        "cmdRecvBreak",
+		cmdGo:               "cmdGo",
+		cmdStep:             "cmdStep",
+		cmdContinue:         "cmdContinue",
+		cmdWait:             "cmdWait",
+		cmdWriteInstruction: "cmdWriteInstruction",
+		cmdSetPC:            "cmdSetPC",
+		cmdGetPC:            "cmdGetPC",
+		cmdRegisters:        "cmdRegisters",
+		cmdSRAM:             "cmdSRAM",
+		cmdReadFlash:        "cmdReadFlash",
+		cmdWriteFlashPage:   "cmdWriteFlashPage",
+		cmdReadFuses:        "cmdReadFuses",
 	}
 )
 
 type DwtkIceAdapter struct {
-	device     *usbfs.Device
-	ubrr       uint16
-	baudrate   uint32
-	afterBreak bool
+	device         *usbfs.Device
+	ubrr           uint16
+	targetBaudrate uint32
+	actualBaudrate uint32
+	signature      uint16
 }
 
-func New(baudrate uint32) (*DwtkIceAdapter, error) {
+func New() (*DwtkIceAdapter, error) {
 	devices, err := usbfs.GetDevices(VID, PID)
 	if err != nil {
 		return nil, err
@@ -83,39 +78,24 @@ func New(baudrate uint32) (*DwtkIceAdapter, error) {
 	}
 
 	rv := &DwtkIceAdapter{
-		device:     devices[0],
-		afterBreak: false,
+		device: devices[0],
 	}
 	if err := rv.device.Open(); err != nil {
 		return nil, err
 	}
 	logger.Debug.Printf(" * Detected dwtk-ice %s", rv.device.GetVersion())
 
-	if baudrate == 0 {
-		rv.ubrr, err = rv.detectBaudrate()
-		if err != nil {
-			rv.Close()
-			return nil, err
-		}
-	} else {
-		rv.ubrr, err = rv.baudrateToUbrr(baudrate)
-		if err != nil {
-			rv.Close()
-			return nil, err
-		}
-
-		if err := rv.setBaudrate(rv.ubrr); err != nil {
-			rv.Close()
-			return nil, err
-		}
-	}
-
-	rv.baudrate, err = rv.ubrrToBaudrate(rv.ubrr)
-	if err != nil {
-		rv.Close()
+	f := make([]byte, 8)
+	if err := rv.controlIn(cmdInit, 0, 0, f); err != nil {
 		return nil, err
 	}
-	logger.Debug.Printf(" * Actual baudrate: %d", rv.baudrate)
+
+	rv.ubrr = (uint16(f[4]) << 8) | uint16(f[5])
+	rv.actualBaudrate = (uint32(f[0]) * 1000000) / uint32(uint16(f[1])*(rv.ubrr+1))
+	rv.targetBaudrate = (uint32(f[0]) * 1000000) / uint32((uint16(f[2])<<8)|uint16(f[3]))
+	rv.signature = (uint16(f[6]) << 8) | uint16(f[7])
+
+	logger.Debug.Printf(" * Actual baudrate: %d", rv.actualBaudrate)
 
 	return rv, nil
 }
@@ -125,9 +105,20 @@ func (dw *DwtkIceAdapter) Close() error {
 }
 
 func (dw *DwtkIceAdapter) Info() string {
-	return fmt.Sprintf("dwtk-ice %s\n\nBaud Rate: %d bps\nBaud Rate Register: 0x%04x\n",
+	return fmt.Sprintf(
+		`dwtk-ice %s
+
+Target baudrate:   %d bps
+Actual baudrate:   %d bps
+Baudrate Register: 0x%04x
+`,
 		dw.device.GetVersion(),
-		dw.baudrate,
+		dw.targetBaudrate,
+		dw.actualBaudrate,
 		dw.ubrr,
 	)
+}
+
+func (dw *DwtkIceAdapter) GetSignature() (uint16, error) {
+	return dw.signature, nil
 }
