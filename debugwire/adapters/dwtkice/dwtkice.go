@@ -3,6 +3,7 @@ package dwtkice
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/dwtk/dwtk/internal/logger"
 	"github.com/dwtk/dwtk/internal/usbfs"
@@ -15,9 +16,11 @@ const (
 
 const (
 	cmdGetError = iota + 1
-	cmdInit
+	cmdDetectBaudrate
+	cmdGetBaudrate
 	cmdDisable
 	cmdReset
+	cmdGetSignature
 	cmdSendBreak
 	cmdRecvBreak
 	cmdGo
@@ -38,7 +41,8 @@ const (
 var (
 	cmds = map[byte]string{
 		cmdGetError:         "cmdGetError",
-		cmdInit:             "cmdInit",
+		cmdDetectBaudrate:   "cmdDetectBaudrate",
+		cmdGetBaudrate:      "cmdGetBaudrate",
 		cmdDisable:          "cmdDisable",
 		cmdReset:            "cmdReset",
 		cmdSendBreak:        "cmdSendBreak",
@@ -59,11 +63,9 @@ var (
 
 	iceErrors = map[uint8]error{
 		1: errors.New("debugwire: dwtk-ice: baudrate detection failed"),
-		2: errors.New("debugwire: dwtk-ice: target detection failed"),
-		3: errors.New("debugwire: dwtk-ice: got unexpected target device"),
-		4: errors.New("debugwire: dwtk-ice: got unexpected byte echoed back"),
-		5: errors.New("debugwire: dwtk-ice: got unexpected break value"),
-		6: errors.New("debugwire: dwtk-ice: read/write data is too large"),
+		2: errors.New("debugwire: dwtk-ice: got unexpected byte echoed back"),
+		3: errors.New("debugwire: dwtk-ice: got unexpected break value"),
+		4: errors.New("debugwire: dwtk-ice: read/write data is too large"),
 	}
 )
 
@@ -72,7 +74,6 @@ type DwtkIceAdapter struct {
 	ubrr           uint16
 	targetBaudrate uint32
 	actualBaudrate uint32
-	signature      uint16
 }
 
 func New() (*DwtkIceAdapter, error) {
@@ -95,15 +96,39 @@ func New() (*DwtkIceAdapter, error) {
 	}
 	logger.Debug.Printf(" * Detected dwtk-ice %s", rv.device.GetVersion())
 
-	f := make([]byte, 8)
-	if err := rv.controlIn(cmdInit, 0, 0, f); err != nil {
+	if err := rv.controlIn(cmdDetectBaudrate, 0, 0, nil); err != nil {
 		return nil, err
+	}
+
+	// we need a delay here to avoid issuing an usb request while dwtk-ice is
+	// detecting baudrate with interrupts disabled.
+	//
+	// the math is easy:
+	// - each bit takes 1/20Mhz seconds (50ns)
+	// - max counter is 0xffff. 50ns * 0xffff ~= 3.3ms
+	//
+	// with some margin, we set 30ms because why not
+	time.Sleep(30 * time.Millisecond)
+
+	if err := rv.controlGetError(); err != nil {
+		return nil, err
+	}
+
+	f := make([]byte, 6)
+	if err := rv.controlIn(cmdGetBaudrate, 0, 0, f); err != nil {
+		return nil, err
+	}
+
+	if f[1] == 0 {
+		return nil, fmt.Errorf("debugwire: dwtk-ice: invalid baudrate prescaler: 0")
+	}
+	if f[2] == 0 && f[3] == 0 {
+		return nil, fmt.Errorf("debugwire: dwtk-ice: invalid pulse width: 0")
 	}
 
 	rv.ubrr = (uint16(f[4]) << 8) | uint16(f[5])
 	rv.actualBaudrate = (uint32(f[0]) * 1000000) / uint32(uint16(f[1])*(rv.ubrr+1))
 	rv.targetBaudrate = (uint32(f[0]) * 1000000) / uint32((uint16(f[2])<<8)|uint16(f[3]))
-	rv.signature = (uint16(f[6]) << 8) | uint16(f[7])
 
 	logger.Debug.Printf(" * Actual baudrate: %d", rv.actualBaudrate)
 
@@ -138,7 +163,11 @@ func (dw *DwtkIceAdapter) Reset() error {
 }
 
 func (dw *DwtkIceAdapter) GetSignature() (uint16, error) {
-	return dw.signature, nil
+	f := make([]byte, 2)
+	if err := dw.controlIn(cmdGetSignature, 0, 0, f); err != nil {
+		return 0, err
+	}
+	return (uint16(f[0]) << 8) | uint16(f[1]), nil
 }
 
 func (dw *DwtkIceAdapter) SendBreak() error {
