@@ -21,18 +21,6 @@ func BREAK() uint16 {
 	return op
 }
 
-func IN(addr byte, reg byte) uint16 {
-	// https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_IN.html
-	// opcode: 1011 0AAd dddd AAAA
-	op := uint16(0b1011000000000000)
-	ah := uint16(0b110000 & addr)
-	ah <<= 5
-	al := uint16(0b1111 & addr)
-	de := uint16(0b11111 & reg)
-	de <<= 4
-	return op | ah | al | de
-}
-
 func OUT(addr byte, reg byte) uint16 {
 	// https://www.microchip.com/webdoc/avrassembler/avrassembler.wb_OUT.html
 	// opcode: 1011 1AAr rrrr AAAA
