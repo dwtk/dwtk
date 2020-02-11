@@ -1,7 +1,6 @@
 package dwtkice
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -45,6 +44,7 @@ var (
 		cmdGetBaudrate:      "cmdGetBaudrate",
 		cmdDisable:          "cmdDisable",
 		cmdReset:            "cmdReset",
+		cmdGetSignature:     "cmdGetSignature",
 		cmdSendBreak:        "cmdSendBreak",
 		cmdRecvBreak:        "cmdRecvBreak",
 		cmdGo:               "cmdGo",
@@ -58,14 +58,23 @@ var (
 		cmdSRAM:             "cmdSRAM",
 		cmdReadFlash:        "cmdReadFlash",
 		cmdWriteFlashPage:   "cmdWriteFlashPage",
+		cmdEraseFlashPage:   "cmdEraseFlashPage",
 		cmdReadFuses:        "cmdReadFuses",
 	}
 
-	iceErrors = map[uint8]error{
-		1: errors.New("debugwire: dwtk-ice: baudrate detection failed"),
-		2: errors.New("debugwire: dwtk-ice: got unexpected byte echoed back"),
-		3: errors.New("debugwire: dwtk-ice: got unexpected break value"),
-		4: errors.New("debugwire: dwtk-ice: read/write data is too large"),
+	iceErrors = map[uint8]func(byte, byte) error{
+		1: func(_ byte, _ byte) error {
+			return fmt.Errorf("debugwire: dwtk-ice: baudrate detection failed")
+		},
+		2: func(exp byte, got byte) error {
+			return fmt.Errorf("debugwire: dwtk-ice: got unexpected byte echoed back: expected 0x%02x, got 0x%02x", exp, got)
+		},
+		3: func(got byte, _ byte) error {
+			return fmt.Errorf("debugwire: dwtk-ice: got unexpected break value: expected 0x55, got 0x%02x", got)
+		},
+		4: func(_ byte, _ byte) error {
+			return fmt.Errorf("debugwire: dwtk-ice: read/write data is too large")
+		},
 	}
 )
 
