@@ -9,13 +9,22 @@ import (
 )
 
 const (
-	VID = 0x1d50 // OpenMoko, Inc.
-	PID = 0x614c // dwtk In-Circuit Emulator
+	vid = 0x1d50 // OpenMoko, Inc.
+	pid = 0x614c // dwtk In-Circuit Emulator
 )
 
 const (
 	cmdGetError = iota + 1
-	cmdDetectBaudrate
+)
+
+const (
+	cmdSpiPgmEnable = iota + 0x20
+	cmdSpiPgmDisable
+	cmdSpiCommand
+)
+
+const (
+	cmdDetectBaudrate = iota + 0x40
 	cmdGetBaudrate
 	cmdDisable
 	cmdReset
@@ -37,9 +46,26 @@ const (
 	cmdReadFuses
 )
 
+const (
+	errSpiPgmEnable = iota + 0x20
+	errSpiEchoMismatch
+)
+
+const (
+	errBaudrateDetection = iota + 0x40
+	errEchoMismatch
+	errBreakMismatch
+	errTooLarge
+)
+
 var (
 	cmds = map[byte]string{
-		cmdGetError:         "cmdGetError",
+		cmdGetError: "cmdGetError",
+
+		cmdSpiPgmEnable:  "cmdSpiPgmEnable",
+		cmdSpiPgmDisable: "cmdSpiPgmDisable",
+		cmdSpiCommand:    "cmdSpiCommand",
+
 		cmdDetectBaudrate:   "cmdDetectBaudrate",
 		cmdGetBaudrate:      "cmdGetBaudrate",
 		cmdDisable:          "cmdDisable",
@@ -63,16 +89,22 @@ var (
 	}
 
 	iceErrors = map[uint8]func(byte, byte) error{
-		1: func(_ byte, _ byte) error {
+		errSpiPgmEnable: func(_ byte, _ byte) error {
+			return fmt.Errorf("debugwire: dwtk-ice: SPI programming enable failed")
+		},
+		errSpiEchoMismatch: func(exp byte, got byte) error {
+			return fmt.Errorf("debugwire: dwtk-ice: got unexpected byte echoed back via SPI: expected 0x%02x, got 0x%02x", exp, got)
+		},
+		errBaudrateDetection: func(_ byte, _ byte) error {
 			return fmt.Errorf("debugwire: dwtk-ice: baudrate detection failed")
 		},
-		2: func(exp byte, got byte) error {
+		errEchoMismatch: func(exp byte, got byte) error {
 			return fmt.Errorf("debugwire: dwtk-ice: got unexpected byte echoed back: expected 0x%02x, got 0x%02x", exp, got)
 		},
-		3: func(got byte, _ byte) error {
+		errBreakMismatch: func(got byte, _ byte) error {
 			return fmt.Errorf("debugwire: dwtk-ice: got unexpected break value: expected 0x55, got 0x%02x", got)
 		},
-		4: func(_ byte, _ byte) error {
+		errTooLarge: func(_ byte, _ byte) error {
 			return fmt.Errorf("debugwire: dwtk-ice: read/write data is too large")
 		},
 	}
@@ -86,7 +118,7 @@ type DwtkIceAdapter struct {
 }
 
 func New() (*DwtkIceAdapter, error) {
-	devices, err := usbfs.GetDevices(VID, PID)
+	devices, err := usbfs.GetDevices(vid, pid)
 	if err != nil {
 		return nil, err
 	}
