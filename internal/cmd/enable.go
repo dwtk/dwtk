@@ -10,8 +10,8 @@ func init() {
 
 var EnableCmd = &cobra.Command{
 	Use:   "enable",
-	Short: "enable debugWIRE in the target MCU and exit",
-	Long:  "This command enables debugWIRE in the target MCU and exits.",
+	Short: "enable debugWIRE in target MCU and exit",
+	Long:  "This command enables debugWIRE in target MCU and exits.",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		noReset = true

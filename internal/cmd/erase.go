@@ -10,8 +10,8 @@ func init() {
 
 var EraseCmd = &cobra.Command{
 	Use:   "erase",
-	Short: "erase the target MCU's flash and exit",
-	Long:  "This command erases the target MCU's flash and exits.",
+	Short: "erase target MCU's flash and exit",
+	Long:  "This command erases target MCU's flash and exits.",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		noReset = true

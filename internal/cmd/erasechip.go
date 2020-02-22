@@ -10,8 +10,8 @@ func init() {
 
 var EraseChipCmd = &cobra.Command{
 	Use:   "erase-chip",
-	Short: "erase target chip (flash, eeprom, lockbits) and exit",
-	Long:  "This command erases the target chip (flash, eeprom, lockbits) and exits.",
+	Short: "erase target flash, eeprom, lock using SPI command and exit",
+	Long:  "This command erases target flash, eeprom, lock using SPI command and exits.",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		noReset = true

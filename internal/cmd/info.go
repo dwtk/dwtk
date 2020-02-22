@@ -11,8 +11,8 @@ func init() {
 
 var InfoCmd = &cobra.Command{
 	Use:   "info",
-	Short: "retrieve information from the target MCU and exit",
-	Long:  "This command retrieves information from the target MCU and exits.",
+	Short: "retrieve device information from target MCU and exit",
+	Long:  "This command retrieves device information from target MCU and exits.",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cmd.Print(dw.Info())

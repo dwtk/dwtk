@@ -14,8 +14,8 @@ func init() {
 
 var VerifyCmd = &cobra.Command{
 	Use:   "verify FILE",
-	Short: "verify firmware (ELF or Intel HEX) flashed to target MCU and exit",
-	Long:  "This command verifies firmware (ELF or Intel Hex) flashed to target MCU and exits.",
+	Short: "verify firmware (ELF or Intel HEX) against target MCU's content and exit",
+	Long:  "This command verifies firmware (ELF or Intel HEX) against target MCU's content and exits.",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		f, err := firmware.NewFromFile(args[0], dw.MCU)

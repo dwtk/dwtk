@@ -35,7 +35,7 @@ func init() {
 		&lock,
 		"lock",
 		0,
-		"set lockbit",
+		"set lock",
 	)
 
 	RootCmd.AddCommand(FusesCmd)
@@ -43,8 +43,8 @@ func init() {
 
 var FusesCmd = &cobra.Command{
 	Use:   "fuses",
-	Short: "retrieve or set fuses from the target MCU and exit",
-	Long:  "This command retrieves or sets fuses from the target MCU and exits.",
+	Short: "retrieve or set fuses and lock from target MCU and exit",
+	Long:  "This command retrieves or sets fuses and lock from target MCU and exits.",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		set := false
