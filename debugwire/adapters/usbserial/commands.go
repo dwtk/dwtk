@@ -1,7 +1,17 @@
 package usbserial
 
+import (
+	"fmt"
+)
+
 func (us *UsbSerialAdapter) Disable() error {
-	return us.device.Write([]byte{0x06})
+	if err := us.device.Write([]byte{0x06}); err != nil {
+		return err
+	}
+
+	fmt.Println("debugWIRE was disabled for target device, and it can be flashed using an SPI ISP now.")
+	fmt.Println("this must be done without a target power cycle.")
+	return nil
 }
 
 func (us *UsbSerialAdapter) Reset() error {

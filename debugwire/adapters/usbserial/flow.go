@@ -11,6 +11,13 @@ func (us *UsbSerialAdapter) Go() error {
 	return us.device.Commit()
 }
 
+func (us *UsbSerialAdapter) ResetAndGo() error {
+	if err := us.Reset(); err != nil {
+		return err
+	}
+	return us.Go()
+}
+
 func (us *UsbSerialAdapter) Step() error {
 	c := []byte{
 		0x60,

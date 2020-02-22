@@ -1,11 +1,16 @@
 package usbserial
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/dwtk/dwtk/internal/logger"
 	"github.com/dwtk/dwtk/internal/usbserial"
+)
+
+var (
+	errNotSupported = errors.New("debugwire: usbserial: operation not supported by Usb Serial")
 )
 
 type UsbSerialAdapter struct {
@@ -70,4 +75,28 @@ func (us *UsbSerialAdapter) Close() error {
 
 func (us *UsbSerialAdapter) Info() string {
 	return fmt.Sprintf("Serial Port (USB Serial): %s\nBaud Rate: %d bps\n", us.serialPort, us.baudrate)
+}
+
+func (us *UsbSerialAdapter) Enable() error {
+	return errNotSupported
+}
+
+func (us *UsbSerialAdapter) ChipErase() error {
+	return errNotSupported
+}
+
+func (us *UsbSerialAdapter) WriteLFuse(data byte) error {
+	return errNotSupported
+}
+
+func (us *UsbSerialAdapter) WriteHFuse(data byte) error {
+	return errNotSupported
+}
+
+func (us *UsbSerialAdapter) WriteEFuse(data byte) error {
+	return errNotSupported
+}
+
+func (us *UsbSerialAdapter) WriteLock(data byte) error {
+	return errNotSupported
 }

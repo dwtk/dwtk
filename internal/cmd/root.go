@@ -93,10 +93,7 @@ func Close() error {
 	if dw != nil {
 		defer dw.Close()
 		if !noReset {
-			if err := dw.Reset(); err != nil {
-				return err
-			}
-			if err := dw.Go(); err != nil {
+			if err := dw.ResetAndGo(); err != nil {
 				return err
 			}
 		}

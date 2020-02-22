@@ -54,6 +54,10 @@ func (dw *DebugWIRE) Info() string {
 	return dw.adapter.Info()
 }
 
+func (dw *DebugWIRE) Enable() error {
+	return dw.adapter.Enable()
+}
+
 func (dw *DebugWIRE) Disable() error {
 	return dw.adapter.Disable()
 }
@@ -66,6 +70,10 @@ func (dw *DebugWIRE) GetSignature() (uint16, error) {
 	return dw.adapter.GetSignature()
 }
 
+func (dw *DebugWIRE) ChipErase() error {
+	return dw.adapter.ChipErase()
+}
+
 func (dw *DebugWIRE) SendBreak() error {
 	return dw.adapter.SendBreak()
 }
@@ -76,6 +84,10 @@ func (dw *DebugWIRE) RecvBreak() error {
 
 func (dw *DebugWIRE) Go() error {
 	return dw.adapter.Go()
+}
+
+func (dw *DebugWIRE) ResetAndGo() error {
+	return dw.adapter.ResetAndGo()
 }
 
 func (dw *DebugWIRE) Step() error {
@@ -120,4 +132,19 @@ func (dw *DebugWIRE) ReadSRAM(start uint16, data []byte) error {
 
 func (dw *DebugWIRE) ReadFuses() ([]byte, error) {
 	return dw.adapter.ReadFuses()
+}
+func (dw *DebugWIRE) WriteLFuse(data byte) error {
+	return dw.adapter.WriteLFuse(data)
+}
+
+func (dw *DebugWIRE) WriteHFuse(data byte) error {
+	return dw.adapter.WriteHFuse(data)
+}
+
+func (dw *DebugWIRE) WriteEFuse(data byte) error {
+	return dw.adapter.WriteEFuse(data)
+}
+
+func (dw *DebugWIRE) WriteLock(data byte) error {
+	return dw.adapter.WriteLock(data)
 }

@@ -12,14 +12,17 @@ type Adapter interface {
 	Close() error
 	Info() string
 
+	Enable() error
 	Disable() error
 	Reset() error
 	GetSignature() (uint16, error)
+	ChipErase() error
 
 	SendBreak() error
 	RecvBreak() error
 
 	Go() error
+	ResetAndGo() error
 	Step() error
 	Continue(hwBreakpoint uint16, hwBreakpointSet bool, timers bool) error
 
@@ -40,6 +43,10 @@ type Adapter interface {
 	EraseFlashPage(start uint16) error
 
 	ReadFuses() ([]byte, error)
+	WriteLFuse(data byte) error
+	WriteHFuse(data byte) error
+	WriteEFuse(data byte) error
+	WriteLock(data byte) error
 }
 
 func New(serialPort string, baudrate uint32) (Adapter, error) {
