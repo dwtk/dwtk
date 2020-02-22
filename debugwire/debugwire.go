@@ -2,7 +2,6 @@ package debugwire
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/dwtk/dwtk/avr"
 	"github.com/dwtk/dwtk/debugwire/adapters"
@@ -38,11 +37,10 @@ func New(device string, baudrate uint32) (*DebugWIRE, error) {
 		return nil, err
 	}
 
-	rv.MCU = avr.GetMCU(sign)
-	if rv.MCU == nil {
+	rv.MCU, err = avr.GetMCU(sign)
+	if err != nil {
 		rv.Close()
-		return nil, fmt.Errorf(`debugwire: failed to detect MCU from signature: 0x%04x
-Please open an issue/pull request: https://github.com/rafaelmartins/dwtk`, sign)
+		return nil, err
 	}
 
 	return rv, nil
