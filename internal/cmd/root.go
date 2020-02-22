@@ -87,19 +87,20 @@ var RootCmd = &cobra.Command{
 
 		return nil
 	},
-	PersistentPostRunE: func(cmd *cobra.Command, args []string) error {
-		if dw != nil {
-			defer dw.Close()
-			if !noReset {
-				if err := dw.Reset(); err != nil {
-					return err
-				}
-				if err := dw.Go(); err != nil {
-					return err
-				}
+}
+
+func Close() error {
+	if dw != nil {
+		defer dw.Close()
+		if !noReset {
+			if err := dw.Reset(); err != nil {
+				return err
+			}
+			if err := dw.Go(); err != nil {
+				return err
 			}
 		}
+	}
 
-		return nil
-	},
+	return nil
 }
