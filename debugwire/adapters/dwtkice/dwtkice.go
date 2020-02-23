@@ -279,8 +279,7 @@ func (dw *DwtkIceAdapter) Disable() error {
 
 func (dw *DwtkIceAdapter) Reset() error {
 	if dw.spiMode {
-		// FIXME: implement reset on firmware
-		return nil
+		return errNotSupportedSpi
 	}
 
 	return dw.controlIn(cmdReset, 0, 0, nil)
@@ -331,13 +330,14 @@ func (dw *DwtkIceAdapter) Go() error {
 }
 
 func (dw *DwtkIceAdapter) ResetAndGo() error {
+	if dw.spiMode {
+		// nothing needs to be done for spi. the target device is already restarted on close.
+		return nil
+	}
 	if err := dw.Reset(); err != nil {
 		return err
 	}
-	if !dw.spiMode {
-		return dw.Go()
-	}
-	return nil
+	return dw.Go()
 }
 
 func (dw *DwtkIceAdapter) Step() error {
