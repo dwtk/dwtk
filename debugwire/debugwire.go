@@ -31,7 +31,7 @@ func New(device string, baudrate uint32) (*DebugWIRE, error) {
 		swBreakpoints:   make(map[uint16]uint16, 1),
 	}
 
-	sign, err := a.GetSignature()
+	sign, err := a.ReadSignature()
 	if err != nil {
 		rv.Close()
 		return nil, err
@@ -66,8 +66,8 @@ func (dw *DebugWIRE) Reset() error {
 	return dw.adapter.Reset()
 }
 
-func (dw *DebugWIRE) GetSignature() (uint16, error) {
-	return dw.adapter.GetSignature()
+func (dw *DebugWIRE) ReadSignature() (uint16, error) {
+	return dw.adapter.ReadSignature()
 }
 
 func (dw *DebugWIRE) ChipErase() error {

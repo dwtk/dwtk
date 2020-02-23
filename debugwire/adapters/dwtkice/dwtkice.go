@@ -30,7 +30,7 @@ const (
 	cmdGetBaudrate
 	cmdDisable
 	cmdReset
-	cmdGetSignature
+	cmdReadSignature
 	cmdSendBreak
 	cmdRecvBreak
 	cmdGo
@@ -72,7 +72,7 @@ var (
 		cmdGetBaudrate:      "cmdGetBaudrate",
 		cmdDisable:          "cmdDisable",
 		cmdReset:            "cmdReset",
-		cmdGetSignature:     "cmdGetSignature",
+		cmdReadSignature:    "cmdReadSignature",
 		cmdSendBreak:        "cmdSendBreak",
 		cmdRecvBreak:        "cmdRecvBreak",
 		cmdGo:               "cmdGo",
@@ -286,13 +286,13 @@ func (dw *DwtkIceAdapter) Reset() error {
 	return dw.controlIn(cmdReset, 0, 0, nil)
 }
 
-func (dw *DwtkIceAdapter) GetSignature() (uint16, error) {
+func (dw *DwtkIceAdapter) ReadSignature() (uint16, error) {
 	if dw.spiMode {
 		return dw.spiReadSignature()
 	}
 
 	f := make([]byte, 2)
-	if err := dw.controlIn(cmdGetSignature, 0, 0, f); err != nil {
+	if err := dw.controlIn(cmdReadSignature, 0, 0, f); err != nil {
 		return 0, err
 	}
 	return (uint16(f[0]) << 8) | uint16(f[1]), nil

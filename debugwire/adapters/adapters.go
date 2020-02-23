@@ -15,7 +15,7 @@ type Adapter interface {
 	Enable() error
 	Disable() error
 	Reset() error
-	GetSignature() (uint16, error)
+	ReadSignature() (uint16, error)
 	ChipErase() error
 
 	SendBreak() error

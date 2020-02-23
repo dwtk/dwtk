@@ -26,7 +26,7 @@ func (us *UsbSerialAdapter) Reset() error {
 	return us.RecvBreak()
 }
 
-func (us *UsbSerialAdapter) GetSignature() (uint16, error) {
+func (us *UsbSerialAdapter) ReadSignature() (uint16, error) {
 	if err := us.device.Write([]byte{0xf3}); err != nil {
 		return 0, err
 	}
