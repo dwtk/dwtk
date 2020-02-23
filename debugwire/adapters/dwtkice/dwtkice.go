@@ -23,6 +23,7 @@ const (
 	cmdSpiPgmEnable = iota + 0x20
 	cmdSpiPgmDisable
 	cmdSpiCommand
+	cmdSpiReset
 )
 
 const (
@@ -67,6 +68,7 @@ var (
 		cmdSpiPgmEnable:  "cmdSpiPgmEnable",
 		cmdSpiPgmDisable: "cmdSpiPgmDisable",
 		cmdSpiCommand:    "cmdSpiCommand",
+		cmdSpiReset:      "cmdSpiReset",
 
 		cmdDetectBaudrate:   "cmdDetectBaudrate",
 		cmdGetBaudrate:      "cmdGetBaudrate",
@@ -279,7 +281,7 @@ func (dw *DwtkIceAdapter) Disable() error {
 
 func (dw *DwtkIceAdapter) Reset() error {
 	if dw.spiMode {
-		return errNotSupportedSpi
+		return dw.controlIn(cmdSpiReset, 0, 0, nil)
 	}
 
 	return dw.controlIn(cmdReset, 0, 0, nil)
@@ -330,14 +332,15 @@ func (dw *DwtkIceAdapter) Go() error {
 }
 
 func (dw *DwtkIceAdapter) ResetAndGo() error {
-	if dw.spiMode {
-		// nothing needs to be done for spi. the target device is already restarted on close.
-		return nil
-	}
 	if err := dw.Reset(); err != nil {
 		return err
 	}
-	return dw.Go()
+	if !dw.spiMode {
+		// we don't have a go command for spi, afaik, resetting starts program right away.
+		// i won't make the go command return nil, because the command itself doesn't exists for spi
+		return dw.Go()
+	}
+	return nil
 }
 
 func (dw *DwtkIceAdapter) Step() error {
