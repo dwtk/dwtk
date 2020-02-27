@@ -224,6 +224,9 @@ func (dw *DwtkIceAdapter) SetMCU(mcu *avr.MCU) {
 
 func (dw *DwtkIceAdapter) Enable() error {
 	if !dw.spiMode {
+		if err := dw.ResetAndGo(); err != nil {
+			return err
+		}
 		return errors.New("debugwire: dwtk-ice: target device is already running on debugWIRE mode")
 	}
 	if dw.mcu == nil {
@@ -238,6 +241,9 @@ func (dw *DwtkIceAdapter) Enable() error {
 	if err := dw.spiWriteHFuse(f); err != nil {
 		return err
 	}
+	if err := dw.controlIn(cmdSpiReset, 0, 0, nil); err != nil {
+		return err
+	}
 
 	fmt.Println("debugWIRE was enabled for target device. a target power cycle may be required")
 	return nil
@@ -245,6 +251,9 @@ func (dw *DwtkIceAdapter) Enable() error {
 
 func (dw *DwtkIceAdapter) Disable() error {
 	if dw.spiMode {
+		if err := dw.ResetAndGo(); err != nil {
+			return err
+		}
 		return errors.New("debugwire: dwtk-ice: target device is already running on SPI ISP mode")
 	}
 
@@ -260,6 +269,9 @@ func (dw *DwtkIceAdapter) Disable() error {
 	}
 	f |= dw.mcu.DwenBit
 	if err := dw.spiWriteHFuse(f); err != nil {
+		return err
+	}
+	if err := dw.controlIn(cmdSpiReset, 0, 0, nil); err != nil {
 		return err
 	}
 
