@@ -119,6 +119,7 @@ var (
 
 type DwtkIceAdapter struct {
 	device         *usbfs.Device
+	mcu            *avr.MCU
 	ubrr           uint16
 	targetBaudrate uint32
 	actualBaudrate uint32
@@ -217,27 +218,23 @@ Baudrate Register: 0x%04x
 	return info
 }
 
+func (dw *DwtkIceAdapter) SetMCU(mcu *avr.MCU) {
+	dw.mcu = mcu
+}
+
 func (dw *DwtkIceAdapter) Enable() error {
 	if !dw.spiMode {
 		return errors.New("debugwire: dwtk-ice: target device is already running on debugWIRE mode")
 	}
+	if dw.mcu == nil {
+		return errors.New("debugwire: dwtk-ice: mcu not set")
+	}
 
-	if err := dw.spiEnable(); err != nil {
-		return err
-	}
-	sign, err := dw.spiReadSignature()
-	if err != nil {
-		return err
-	}
-	mcu, err := avr.GetMCU(sign)
-	if err != nil {
-		return err
-	}
 	f, err := dw.spiReadHFuse()
 	if err != nil {
 		return err
 	}
-	f &= ^(mcu.DwenBit)
+	f &= ^(dw.mcu.DwenBit)
 	if err := dw.spiWriteHFuse(f); err != nil {
 		return err
 	}
@@ -254,23 +251,14 @@ func (dw *DwtkIceAdapter) Disable() error {
 	if err := dw.controlIn(cmdDisable, 0, 0, nil); err != nil {
 		return err
 	}
-	// FIXME: check if SPI is supported
 	if err := dw.spiEnable(); err != nil {
-		return err
-	}
-	sign, err := dw.spiReadSignature()
-	if err != nil {
-		return err
-	}
-	mcu, err := avr.GetMCU(sign)
-	if err != nil {
 		return err
 	}
 	f, err := dw.spiReadHFuse()
 	if err != nil {
 		return err
 	}
-	f |= mcu.DwenBit
+	f |= dw.mcu.DwenBit
 	if err := dw.spiWriteHFuse(f); err != nil {
 		return err
 	}

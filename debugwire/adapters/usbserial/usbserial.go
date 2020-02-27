@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/dwtk/dwtk/avr"
 	"github.com/dwtk/dwtk/internal/logger"
 	"github.com/dwtk/dwtk/internal/usbserial"
 )
@@ -75,6 +76,10 @@ func (us *UsbSerialAdapter) Close() error {
 
 func (us *UsbSerialAdapter) Info() string {
 	return fmt.Sprintf("Serial Port (USB Serial): %s\nBaud Rate: %d bps\n", us.serialPort, us.baudrate)
+}
+
+func (us *UsbSerialAdapter) SetMCU(mcu *avr.MCU) {
+	// we don't need the mcu for anything
 }
 
 func (us *UsbSerialAdapter) Enable() error {

@@ -42,6 +42,7 @@ func New(device string, baudrate uint32) (*DebugWIRE, error) {
 		rv.Close()
 		return nil, err
 	}
+	rv.adapter.SetMCU(rv.MCU)
 
 	return rv, nil
 }
