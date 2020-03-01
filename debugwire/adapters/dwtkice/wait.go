@@ -15,7 +15,7 @@ func (dw *DwtkIceAdapter) Wait(ctx context.Context, c chan bool) error {
 		default:
 		}
 
-		if err := dw.controlIn(cmdWait, 0, 0, f); err != nil {
+		if err := dw.dev.controlIn(cmdWait, 0, 0, f); err != nil {
 			return err
 		}
 

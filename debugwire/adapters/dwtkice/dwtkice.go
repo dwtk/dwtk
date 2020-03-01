@@ -7,118 +7,16 @@ import (
 
 	"github.com/dwtk/dwtk/avr"
 	"github.com/dwtk/dwtk/internal/logger"
-	"github.com/dwtk/dwtk/internal/usbfs"
-)
-
-const (
-	vid = 0x1d50 // OpenMoko, Inc.
-	pid = 0x614c // dwtk In-Circuit Emulator
-)
-
-const (
-	cmdGetError = iota + 1
-)
-
-const (
-	cmdSpiPgmEnable = iota + 0x20
-	cmdSpiPgmDisable
-	cmdSpiCommand
-	cmdSpiReset
-)
-
-const (
-	cmdDetectBaudrate = iota + 0x40
-	cmdGetBaudrate
-	cmdDisable
-	cmdReset
-	cmdReadSignature
-	cmdSendBreak
-	cmdRecvBreak
-	cmdGo
-	cmdStep
-	cmdContinue
-	cmdWait
-	cmdWriteInstruction
-	cmdSetPC
-	cmdGetPC
-	cmdRegisters
-	cmdSRAM
-	cmdReadFlash
-	cmdWriteFlashPage
-	cmdEraseFlashPage
-	cmdReadFuses
-)
-
-const (
-	errSpiPgmEnable = iota + 0x20
-	errSpiEchoMismatch
-)
-
-const (
-	errBaudrateDetection = iota + 0x40
-	errEchoMismatch
-	errBreakMismatch
-	errTooLarge
 )
 
 var (
-	cmds = map[byte]string{
-		cmdGetError: "cmdGetError",
-
-		cmdSpiPgmEnable:  "cmdSpiPgmEnable",
-		cmdSpiPgmDisable: "cmdSpiPgmDisable",
-		cmdSpiCommand:    "cmdSpiCommand",
-		cmdSpiReset:      "cmdSpiReset",
-
-		cmdDetectBaudrate:   "cmdDetectBaudrate",
-		cmdGetBaudrate:      "cmdGetBaudrate",
-		cmdDisable:          "cmdDisable",
-		cmdReset:            "cmdReset",
-		cmdReadSignature:    "cmdReadSignature",
-		cmdSendBreak:        "cmdSendBreak",
-		cmdRecvBreak:        "cmdRecvBreak",
-		cmdGo:               "cmdGo",
-		cmdStep:             "cmdStep",
-		cmdContinue:         "cmdContinue",
-		cmdWait:             "cmdWait",
-		cmdWriteInstruction: "cmdWriteInstruction",
-		cmdSetPC:            "cmdSetPC",
-		cmdGetPC:            "cmdGetPC",
-		cmdRegisters:        "cmdRegisters",
-		cmdSRAM:             "cmdSRAM",
-		cmdReadFlash:        "cmdReadFlash",
-		cmdWriteFlashPage:   "cmdWriteFlashPage",
-		cmdEraseFlashPage:   "cmdEraseFlashPage",
-		cmdReadFuses:        "cmdReadFuses",
-	}
-
-	iceErrors = map[uint8]func(byte, byte) error{
-		errSpiPgmEnable: func(_ byte, _ byte) error {
-			return fmt.Errorf("debugwire: dwtk-ice: SPI programming enable failed")
-		},
-		errSpiEchoMismatch: func(exp byte, got byte) error {
-			return fmt.Errorf("debugwire: dwtk-ice: got unexpected byte echoed back via SPI: expected 0x%02x, got 0x%02x", exp, got)
-		},
-		errBaudrateDetection: func(_ byte, _ byte) error {
-			return fmt.Errorf("debugwire: dwtk-ice: baudrate detection failed")
-		},
-		errEchoMismatch: func(exp byte, got byte) error {
-			return fmt.Errorf("debugwire: dwtk-ice: got unexpected byte echoed back: expected 0x%02x, got 0x%02x", exp, got)
-		},
-		errBreakMismatch: func(got byte, _ byte) error {
-			return fmt.Errorf("debugwire: dwtk-ice: got unexpected break value: expected 0x55, got 0x%02x", got)
-		},
-		errTooLarge: func(_ byte, _ byte) error {
-			return fmt.Errorf("debugwire: dwtk-ice: read/write data is too large")
-		},
-	}
-
 	errNotSupportedDw  = errors.New("debugwire: dwtk-ice: operation not supported: target running on debugWIRE mode, try `dwtk disable`")
 	errNotSupportedSpi = errors.New("debugwire: dwtk-ice: operation not supported: target running on SPI ISP mode, try `dwtk enable`")
 )
 
 type DwtkIceAdapter struct {
-	device         *usbfs.Device
+	dev            *device
+	spi            *spiCommands
 	mcu            *avr.MCU
 	ubrr           uint16
 	targetBaudrate uint32
@@ -127,27 +25,15 @@ type DwtkIceAdapter struct {
 }
 
 func New() (*DwtkIceAdapter, error) {
-	devices, err := usbfs.GetDevices(vid, pid)
-	if err != nil {
+	dev, err := newDevice()
+	if dev == nil || err != nil {
 		return nil, err
 	}
-	if len(devices) == 0 {
-		return nil, nil
-	}
-	if len(devices) > 1 {
-		return nil, fmt.Errorf("debugwire: dwtk-ice: more than one dwtk-ice device found. this is not supported")
-	}
+	logger.Debug.Printf(" * Detected dwtk-ice %s", dev.getVersion())
 
-	rv := &DwtkIceAdapter{
-		device:  devices[0],
-		spiMode: false,
-	}
-	if err := rv.device.Open(); err != nil {
-		return nil, err
-	}
-	logger.Debug.Printf(" * Detected dwtk-ice %s", rv.device.GetVersion())
+	spi := newSpiCommands(dev)
 
-	if err := rv.controlIn(cmdDetectBaudrate, 0, 0, nil); err != nil {
+	if err := dev.controlIn(cmdDetectBaudrate, 0, 0, nil); err != nil {
 		return nil, err
 	}
 
@@ -161,16 +47,15 @@ func New() (*DwtkIceAdapter, error) {
 	// with some margin, we set 30ms because why not
 	time.Sleep(30 * time.Millisecond)
 
-	if errOrig := rv.controlGetError(); errOrig != nil {
-		if err := rv.spiEnable(); err != nil {
+	if errOrig := dev.controlGetError(); errOrig != nil {
+		if err := spi.enable(); err != nil {
 			return nil, errOrig
 		}
-		rv.spiMode = true
-		return rv, nil
+		return &DwtkIceAdapter{dev: dev, spi: spi, spiMode: true}, nil
 	}
 
 	f := make([]byte, 6)
-	if err := rv.controlIn(cmdGetBaudrate, 0, 0, f); err != nil {
+	if err := dev.controlIn(cmdGetBaudrate, 0, 0, f); err != nil {
 		return nil, err
 	}
 
@@ -181,24 +66,29 @@ func New() (*DwtkIceAdapter, error) {
 		return nil, fmt.Errorf("debugwire: dwtk-ice: invalid pulse width: 0")
 	}
 
-	rv.ubrr = (uint16(f[4]) << 8) | uint16(f[5])
-	rv.actualBaudrate = (uint32(f[0]) * 1000000) / uint32(uint16(f[1])*(rv.ubrr+1))
-	rv.targetBaudrate = (uint32(f[0]) * 1000000) / uint32((uint16(f[2])<<8)|uint16(f[3]))
+	ubrr := (uint16(f[4]) << 8) | uint16(f[5])
+	rv := &DwtkIceAdapter{
+		dev:            dev,
+		spi:            spi,
+		ubrr:           ubrr,
+		actualBaudrate: (uint32(f[0]) * 1000000) / uint32(uint16(f[1])*(ubrr+1)),
+		targetBaudrate: (uint32(f[0]) * 1000000) / uint32((uint16(f[2])<<8)|uint16(f[3])),
+		spiMode:        false,
+	}
 
 	logger.Debug.Printf(" * Actual baudrate: %d", rv.actualBaudrate)
-
 	return rv, nil
 }
 
 func (dw *DwtkIceAdapter) Close() error {
 	if dw.spiMode {
-		dw.spiDisable()
+		dw.spi.disable()
 	}
-	return dw.device.Close()
+	return dw.dev.close()
 }
 
 func (dw *DwtkIceAdapter) Info() string {
-	info := fmt.Sprintf("dwtk-ice %s\n", dw.device.GetVersion())
+	info := fmt.Sprintf("dwtk-ice %s\n", dw.dev.getVersion())
 	if dw.spiMode {
 		info += `
 Target running on SPI ISP mode, try ` + "`dwtk enable`" + ` to enable debugWIRE mode.
@@ -229,19 +119,10 @@ func (dw *DwtkIceAdapter) Enable() error {
 		}
 		return errors.New("debugwire: dwtk-ice: target device is already running on debugWIRE mode")
 	}
-	if dw.mcu == nil {
-		return errors.New("debugwire: dwtk-ice: mcu not set")
-	}
-
-	f, err := dw.spiReadHFuse()
-	if err != nil {
+	if err := dw.spi.dwEnable(dw.mcu); err != nil {
 		return err
 	}
-	f &= ^(dw.mcu.DwenBit)
-	if err := dw.spiWriteHFuse(f); err != nil {
-		return err
-	}
-	if err := dw.controlIn(cmdSpiReset, 0, 0, nil); err != nil {
+	if err := dw.dev.controlIn(cmdSpiReset, 0, 0, nil); err != nil {
 		return err
 	}
 
@@ -256,22 +137,13 @@ func (dw *DwtkIceAdapter) Disable() error {
 		}
 		return errors.New("debugwire: dwtk-ice: target device is already running on SPI ISP mode")
 	}
-
-	if err := dw.controlIn(cmdDisable, 0, 0, nil); err != nil {
+	if err := dw.dev.controlIn(cmdDisable, 0, 0, nil); err != nil {
 		return err
 	}
-	if err := dw.spiEnable(); err != nil {
+	if err := dw.spi.dwDisable(dw.mcu); err != nil {
 		return err
 	}
-	f, err := dw.spiReadHFuse()
-	if err != nil {
-		return err
-	}
-	f |= dw.mcu.DwenBit
-	if err := dw.spiWriteHFuse(f); err != nil {
-		return err
-	}
-	if err := dw.controlIn(cmdSpiReset, 0, 0, nil); err != nil {
+	if err := dw.dev.controlIn(cmdSpiReset, 0, 0, nil); err != nil {
 		return err
 	}
 
@@ -281,19 +153,19 @@ func (dw *DwtkIceAdapter) Disable() error {
 
 func (dw *DwtkIceAdapter) Reset() error {
 	if dw.spiMode {
-		return dw.controlIn(cmdSpiReset, 0, 0, nil)
+		return dw.dev.controlIn(cmdSpiReset, 0, 0, nil)
 	}
 
-	return dw.controlIn(cmdReset, 0, 0, nil)
+	return dw.dev.controlIn(cmdReset, 0, 0, nil)
 }
 
 func (dw *DwtkIceAdapter) ReadSignature() (uint16, error) {
 	if dw.spiMode {
-		return dw.spiReadSignature()
+		return dw.spi.readSignature()
 	}
 
 	f := make([]byte, 2)
-	if err := dw.controlIn(cmdReadSignature, 0, 0, f); err != nil {
+	if err := dw.dev.controlIn(cmdReadSignature, 0, 0, f); err != nil {
 		return 0, err
 	}
 	return (uint16(f[0]) << 8) | uint16(f[1]), nil
@@ -304,7 +176,7 @@ func (dw *DwtkIceAdapter) ChipErase() error {
 		return errNotSupportedDw
 	}
 
-	return dw.spiChipErase()
+	return dw.spi.chipErase()
 }
 
 func (dw *DwtkIceAdapter) SendBreak() error {
@@ -312,7 +184,7 @@ func (dw *DwtkIceAdapter) SendBreak() error {
 		return errNotSupportedSpi
 	}
 
-	return dw.controlIn(cmdSendBreak, 0, 0, nil)
+	return dw.dev.controlIn(cmdSendBreak, 0, 0, nil)
 }
 
 func (dw *DwtkIceAdapter) RecvBreak() error {
@@ -320,7 +192,7 @@ func (dw *DwtkIceAdapter) RecvBreak() error {
 		return errNotSupportedSpi
 	}
 
-	return dw.controlIn(cmdRecvBreak, 0, 0, nil)
+	return dw.dev.controlIn(cmdRecvBreak, 0, 0, nil)
 }
 
 func (dw *DwtkIceAdapter) Go() error {
@@ -328,7 +200,7 @@ func (dw *DwtkIceAdapter) Go() error {
 		return errNotSupportedSpi
 	}
 
-	return dw.controlIn(cmdGo, 0, 0, nil)
+	return dw.dev.controlIn(cmdGo, 0, 0, nil)
 }
 
 func (dw *DwtkIceAdapter) ResetAndGo() error {
@@ -348,7 +220,7 @@ func (dw *DwtkIceAdapter) Step() error {
 		return errNotSupportedSpi
 	}
 
-	return dw.controlIn(cmdStep, 0, 0, nil)
+	return dw.dev.controlIn(cmdStep, 0, 0, nil)
 }
 
 func (dw *DwtkIceAdapter) Continue(hwBreakpoint uint16, hwBreakpointSet bool, timers bool) error {
@@ -365,7 +237,7 @@ func (dw *DwtkIceAdapter) Continue(hwBreakpoint uint16, hwBreakpointSet bool, ti
 	if timers {
 		idx |= (1 << 1)
 	}
-	return dw.controlIn(cmdContinue, hwBreakpoint, idx, nil)
+	return dw.dev.controlIn(cmdContinue, hwBreakpoint, idx, nil)
 }
 
 func (dw *DwtkIceAdapter) WriteInstruction(inst uint16) error {
@@ -373,7 +245,7 @@ func (dw *DwtkIceAdapter) WriteInstruction(inst uint16) error {
 		return errNotSupportedSpi
 	}
 
-	return dw.controlIn(cmdWriteInstruction, inst, 0, nil)
+	return dw.dev.controlIn(cmdWriteInstruction, inst, 0, nil)
 }
 
 func (dw *DwtkIceAdapter) WriteRegisters(start byte, regs []byte) error {
@@ -381,7 +253,7 @@ func (dw *DwtkIceAdapter) WriteRegisters(start byte, regs []byte) error {
 		return errNotSupportedSpi
 	}
 
-	return dw.controlOut(cmdRegisters, uint16(start), 0, regs)
+	return dw.dev.controlOut(cmdRegisters, uint16(start), 0, regs)
 }
 
 func (dw *DwtkIceAdapter) ReadRegisters(start byte, regs []byte) error {
@@ -389,7 +261,7 @@ func (dw *DwtkIceAdapter) ReadRegisters(start byte, regs []byte) error {
 		return errNotSupportedSpi
 	}
 
-	return dw.controlIn(cmdRegisters, uint16(start), 0, regs)
+	return dw.dev.controlIn(cmdRegisters, uint16(start), 0, regs)
 }
 
 func (dw *DwtkIceAdapter) SetPC(pc uint16) error {
@@ -397,7 +269,7 @@ func (dw *DwtkIceAdapter) SetPC(pc uint16) error {
 		return errNotSupportedSpi
 	}
 
-	return dw.controlIn(cmdSetPC, pc, 0, nil)
+	return dw.dev.controlIn(cmdSetPC, pc, 0, nil)
 }
 
 func (dw *DwtkIceAdapter) GetPC() (uint16, error) {
@@ -406,7 +278,7 @@ func (dw *DwtkIceAdapter) GetPC() (uint16, error) {
 	}
 
 	f := make([]byte, 2)
-	if err := dw.controlIn(cmdGetPC, 0, 0, f); err != nil {
+	if err := dw.dev.controlIn(cmdGetPC, 0, 0, f); err != nil {
 		return 0, err
 	}
 	return (uint16(f[0]) << 8) | uint16(f[1]), nil
@@ -417,7 +289,7 @@ func (dw *DwtkIceAdapter) WriteSRAM(start uint16, data []byte) error {
 		return errNotSupportedSpi
 	}
 
-	return dw.controlOut(cmdSRAM, start, 0, data)
+	return dw.dev.controlOut(cmdSRAM, start, 0, data)
 }
 
 func (dw *DwtkIceAdapter) ReadSRAM(start uint16, data []byte) error {
@@ -425,7 +297,7 @@ func (dw *DwtkIceAdapter) ReadSRAM(start uint16, data []byte) error {
 		return errNotSupportedSpi
 	}
 
-	return dw.controlIn(cmdSRAM, start, 0, data)
+	return dw.dev.controlIn(cmdSRAM, start, 0, data)
 }
 
 func (dw *DwtkIceAdapter) WriteFlashPage(start uint16, data []byte) error {
@@ -433,7 +305,7 @@ func (dw *DwtkIceAdapter) WriteFlashPage(start uint16, data []byte) error {
 		return errNotSupportedSpi
 	}
 
-	return dw.controlOut(cmdWriteFlashPage, start, 0, data)
+	return dw.dev.controlOut(cmdWriteFlashPage, start, 0, data)
 }
 
 func (dw *DwtkIceAdapter) EraseFlashPage(start uint16) error {
@@ -441,7 +313,7 @@ func (dw *DwtkIceAdapter) EraseFlashPage(start uint16) error {
 		return errNotSupportedSpi
 	}
 
-	return dw.controlIn(cmdEraseFlashPage, start, 0, nil)
+	return dw.dev.controlIn(cmdEraseFlashPage, start, 0, nil)
 }
 
 func (dw *DwtkIceAdapter) ReadFlash(start uint16, data []byte) error {
@@ -449,32 +321,32 @@ func (dw *DwtkIceAdapter) ReadFlash(start uint16, data []byte) error {
 		return errNotSupportedSpi
 	}
 
-	return dw.controlIn(cmdReadFlash, start, 0, data)
+	return dw.dev.controlIn(cmdReadFlash, start, 0, data)
 }
 
 func (dw *DwtkIceAdapter) ReadFuses() ([]byte, error) {
 	f := make([]byte, 4)
 	if dw.spiMode {
 		var err error
-		f[0], err = dw.spiReadLFuse()
+		f[0], err = dw.spi.readLFuse()
 		if err != nil {
 			return nil, err
 		}
-		f[1], err = dw.spiReadLock()
+		f[1], err = dw.spi.readLock()
 		if err != nil {
 			return nil, err
 		}
-		f[2], err = dw.spiReadEFuse()
+		f[2], err = dw.spi.readEFuse()
 		if err != nil {
 			return nil, err
 		}
-		f[3], err = dw.spiReadHFuse()
+		f[3], err = dw.spi.readHFuse()
 		if err != nil {
 			return nil, err
 		}
 		return f, nil
 	}
-	if err := dw.controlIn(cmdReadFuses, 0, 0, f); err != nil {
+	if err := dw.dev.controlIn(cmdReadFuses, 0, 0, f); err != nil {
 		return nil, err
 	}
 	return f, nil
@@ -485,7 +357,7 @@ func (dw *DwtkIceAdapter) WriteLFuse(data byte) error {
 		return errNotSupportedDw
 	}
 
-	return dw.spiWriteLFuse(data)
+	return dw.spi.writeLFuse(data)
 }
 
 func (dw *DwtkIceAdapter) WriteHFuse(data byte) error {
@@ -493,7 +365,7 @@ func (dw *DwtkIceAdapter) WriteHFuse(data byte) error {
 		return errNotSupportedDw
 	}
 
-	return dw.spiWriteHFuse(data)
+	return dw.spi.writeHFuse(data)
 }
 
 func (dw *DwtkIceAdapter) WriteEFuse(data byte) error {
@@ -501,7 +373,7 @@ func (dw *DwtkIceAdapter) WriteEFuse(data byte) error {
 		return errNotSupportedDw
 	}
 
-	return dw.spiWriteEFuse(data)
+	return dw.spi.writeEFuse(data)
 }
 
 func (dw *DwtkIceAdapter) WriteLock(data byte) error {
@@ -509,5 +381,5 @@ func (dw *DwtkIceAdapter) WriteLock(data byte) error {
 		return errNotSupportedDw
 	}
 
-	return dw.spiWriteLock(data)
+	return dw.spi.writeLock(data)
 }
