@@ -8,6 +8,10 @@ func SpiChipErase() []byte {
 	return []byte{0xac, 0x80, 0x00, 0x00}
 }
 
+func SpiPollRdyNotBusy() []byte {
+	return []byte{0xf0, 0x00, 0x00, 0x00}
+}
+
 func SpiReadSignature(b byte) []byte {
 	return []byte{0x30, 0x00, b, 0x00}
 }

@@ -3,6 +3,7 @@ package dwtkice
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/dwtk/dwtk/avr"
 )
@@ -41,6 +42,20 @@ func (spi *spiCommands) chipErase() error {
 	return err
 }
 
+func (spi *spiCommands) waitWrite() error {
+	for i := 100; i > 0; i-- { // 5 seconds timeout
+		b, err := spi.command(avr.SpiPollRdyNotBusy())
+		if err != nil {
+			return err
+		}
+		if b[3]&0x01 == 0 {
+			return nil
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+	return fmt.Errorf("debugwire: dwtk-ice: failed to wait for spi write")
+}
+
 func (spi *spiCommands) readSignature() (uint16, error) {
 	b, err := spi.command(avr.SpiReadSignature(0))
 	if err != nil {
@@ -72,8 +87,20 @@ func (spi *spiCommands) readLFuse() (byte, error) {
 }
 
 func (spi *spiCommands) writeLFuse(l byte) error {
-	_, err := spi.command(avr.SpiWriteLFuse(l))
-	return err
+	if _, err := spi.command(avr.SpiWriteLFuse(l)); err != nil {
+		return err
+	}
+	if err := spi.waitWrite(); err != nil {
+		return err
+	}
+	f, err := spi.readLFuse()
+	if err != nil {
+		return err
+	}
+	if l != f {
+		return fmt.Errorf("debugwire: dwtk-ice: failed to verify lfuse after writing: expected 0x%02x, got 0x%02x", l, f)
+	}
+	return nil
 }
 
 func (spi *spiCommands) readHFuse() (byte, error) {
@@ -85,8 +112,20 @@ func (spi *spiCommands) readHFuse() (byte, error) {
 }
 
 func (spi *spiCommands) writeHFuse(l byte) error {
-	_, err := spi.command(avr.SpiWriteHFuse(l))
-	return err
+	if _, err := spi.command(avr.SpiWriteHFuse(l)); err != nil {
+		return err
+	}
+	if err := spi.waitWrite(); err != nil {
+		return err
+	}
+	f, err := spi.readHFuse()
+	if err != nil {
+		return err
+	}
+	if l != f {
+		return fmt.Errorf("debugwire: dwtk-ice: failed to verify hfuse after writing: expected 0x%02x, got 0x%02x", l, f)
+	}
+	return nil
 }
 
 func (spi *spiCommands) readEFuse() (byte, error) {
@@ -98,8 +137,20 @@ func (spi *spiCommands) readEFuse() (byte, error) {
 }
 
 func (spi *spiCommands) writeEFuse(l byte) error {
-	_, err := spi.command(avr.SpiWriteEFuse(l))
-	return err
+	if _, err := spi.command(avr.SpiWriteEFuse(l)); err != nil {
+		return err
+	}
+	if err := spi.waitWrite(); err != nil {
+		return err
+	}
+	f, err := spi.readEFuse()
+	if err != nil {
+		return err
+	}
+	if l != f {
+		return fmt.Errorf("debugwire: dwtk-ice: failed to verify efuse after writing: expected 0x%02x, got 0x%02x", l, f)
+	}
+	return nil
 }
 
 func (spi *spiCommands) readLock() (byte, error) {
@@ -111,8 +162,20 @@ func (spi *spiCommands) readLock() (byte, error) {
 }
 
 func (spi *spiCommands) writeLock(l byte) error {
-	_, err := spi.command(avr.SpiWriteLock(l))
-	return err
+	if _, err := spi.command(avr.SpiWriteLock(l)); err != nil {
+		return err
+	}
+	if err := spi.waitWrite(); err != nil {
+		return err
+	}
+	f, err := spi.readLock()
+	if err != nil {
+		return err
+	}
+	if l != f {
+		return fmt.Errorf("debugwire: dwtk-ice: failed to verify lock after writing: expected 0x%02x, got 0x%02x", l, f)
+	}
+	return nil
 }
 
 func (spi *spiCommands) dwEnable(mcu *avr.MCU) error {
