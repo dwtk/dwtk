@@ -146,14 +146,13 @@ func (dw *DwtkIceAdapter) Disable() error {
 		return err
 	}
 	if dw.dev.spi {
-		if err := dw.spi.dwDisable(dw.mcu); err != nil {
-			return err
+		if err := dw.spi.dwDisable(dw.mcu); err == nil {
+			if err := dw.dev.controlIn(cmdSpiReset, 0, 0, nil); err != nil {
+				return err
+			}
+			fmt.Println("debugWIRE was disabled for target device. a target power cycle is required")
+			return nil
 		}
-		if err := dw.dev.controlIn(cmdSpiReset, 0, 0, nil); err != nil {
-			return err
-		}
-		fmt.Println("debugWIRE was disabled for target device. a target power cycle is required")
-		return nil
 	}
 
 	fmt.Println("debugWIRE was disabled for target device, and it can be flashed using an SPI ISP now.")
