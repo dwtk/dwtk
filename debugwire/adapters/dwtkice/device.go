@@ -13,7 +13,13 @@ const (
 )
 
 const (
+	capDw = (1 << iota)
+	capSpi
+)
+
+const (
 	cmdGetError = iota + 1
+	cmdGetCapabilities
 )
 
 const (
@@ -60,7 +66,8 @@ const (
 
 var (
 	cmds = map[byte]string{
-		cmdGetError: "cmdGetError",
+		cmdGetError:        "cmdGetError",
+		cmdGetCapabilities: "cmdGetCapabilities",
 
 		cmdSpiPgmEnable:  "cmdSpiPgmEnable",
 		cmdSpiPgmDisable: "cmdSpiPgmDisable",
@@ -129,6 +136,7 @@ func codeToError(e []byte) error {
 
 type device struct {
 	dev *usbfs.Device
+	spi bool
 }
 
 func newDevice() (*device, error) {
@@ -140,16 +148,33 @@ func newDevice() (*device, error) {
 		return nil, nil
 	}
 	if len(devices) > 1 {
-		return nil, fmt.Errorf("debugwire: dwtk-ice: more than one dwtk-ice device found. this is not supported")
+		return nil, fmt.Errorf("debugwire: dwtk-ice: more than one device found. this is not supported")
 	}
 	if err := devices[0].Open(); err != nil {
 		return nil, err
 	}
-	return &device{dev: devices[0]}, nil
+	rv := &device{
+		dev: devices[0],
+		spi: false,
+	}
+	b := make([]byte, 1)
+	if err := rv.controlIn(cmdGetCapabilities, 0, 0, b); err != nil {
+		return nil, err
+	}
+	if b[0]&capDw == 0 {
+		return nil, fmt.Errorf("debugwire: dwtk-ice: debugwire not supported. this is probably a connection problem")
+	}
+	if b[0]&capSpi != 0 {
+		rv.spi = true
+	}
+	return rv, nil
 }
 
 func (d *device) close() error {
-	return d.dev.Close()
+	if d.dev != nil {
+		return d.dev.Close()
+	}
+	return nil
 }
 
 func (d *device) getVersion() string {

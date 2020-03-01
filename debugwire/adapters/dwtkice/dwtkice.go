@@ -31,7 +31,10 @@ func New() (*DwtkIceAdapter, error) {
 	}
 	logger.Debug.Printf(" * Detected dwtk-ice %s", dev.getVersion())
 
-	spi := newSpiCommands(dev)
+	var spi *spiCommands
+	if dev.spi {
+		spi = newSpiCommands(dev)
+	}
 
 	if err := dev.controlIn(cmdDetectBaudrate, 0, 0, nil); err != nil {
 		return nil, err
@@ -48,6 +51,9 @@ func New() (*DwtkIceAdapter, error) {
 	time.Sleep(30 * time.Millisecond)
 
 	if errOrig := dev.controlGetError(); errOrig != nil {
+		if !dev.spi {
+			return nil, errOrig
+		}
 		if err := spi.enable(); err != nil {
 			return nil, errOrig
 		}
@@ -90,13 +96,12 @@ func (dw *DwtkIceAdapter) Close() error {
 func (dw *DwtkIceAdapter) Info() string {
 	info := fmt.Sprintf("dwtk-ice %s\n", dw.dev.getVersion())
 	if dw.spiMode {
-		info += `
-Target running on SPI ISP mode, try ` + "`dwtk enable`" + ` to enable debugWIRE mode.
-`
+		info += "\nTarget running on SPI ISP mode, try `dwtk enable` to enable debugWIRE mode.\n"
 	} else {
+		if dw.dev.spi {
+			info += "\nTarget running on debugWIRE mode, try `dwtk disable` to return to SPI ISP mode.\n"
+		}
 		info += fmt.Sprintf(`
-Target running on debugWIRE mode, try `+"`dwtk disable`"+` to return to SPI ISP mode.
-
 Target baudrate:   %d bps
 Actual baudrate:   %d bps
 Baudrate Register: 0x%04x
@@ -140,14 +145,19 @@ func (dw *DwtkIceAdapter) Disable() error {
 	if err := dw.dev.controlIn(cmdDisable, 0, 0, nil); err != nil {
 		return err
 	}
-	if err := dw.spi.dwDisable(dw.mcu); err != nil {
-		return err
-	}
-	if err := dw.dev.controlIn(cmdSpiReset, 0, 0, nil); err != nil {
-		return err
+	if dw.dev.spi {
+		if err := dw.spi.dwDisable(dw.mcu); err != nil {
+			return err
+		}
+		if err := dw.dev.controlIn(cmdSpiReset, 0, 0, nil); err != nil {
+			return err
+		}
+		fmt.Println("debugWIRE was disabled for target device. a target power cycle is required")
+		return nil
 	}
 
-	fmt.Println("debugWIRE was disabled for target device. a target power cycle is required")
+	fmt.Println("debugWIRE was disabled for target device, and it can be flashed using an SPI ISP now.")
+	fmt.Println("this must be done without a target power cycle.")
 	return nil
 }
 
