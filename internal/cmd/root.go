@@ -13,6 +13,7 @@ var (
 	dw      *debugwire.DebugWIRE
 	noReset bool
 
+	dwtkIce    bool
 	serialPort string
 	baudrate   uint32
 	frequency  float32
@@ -20,6 +21,13 @@ var (
 )
 
 func init() {
+	RootCmd.PersistentFlags().BoolVarP(
+		&dwtkIce,
+		"dwtk-ice",
+		"i",
+		false,
+		"force usage of dwtk-ice. return error if no dwtk-ice device available",
+	)
 	RootCmd.PersistentFlags().StringVarP(
 		&serialPort,
 		"serial-port",
@@ -74,7 +82,7 @@ var RootCmd = &cobra.Command{
 		}
 
 		var err error
-		dw, err = debugwire.New(serialPort, baudrate)
+		dw, err = debugwire.New(dwtkIce, serialPort, baudrate)
 		if err != nil {
 			return err
 		}
