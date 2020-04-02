@@ -1,6 +1,8 @@
 package usbserial
 
 import (
+	"time"
+
 	"github.com/dwtk/dwtk/avr"
 )
 
@@ -60,7 +62,13 @@ func (us *UsbSerialAdapter) WriteFlashPage(start uint16, b []byte) error {
 	if err := us.WriteInstruction(avr.SPM()); err != nil {
 		return err
 	}
-	return us.SendBreak()
+	if err := us.SendBreak(); err != nil {
+		return err
+	}
+
+	time.Sleep(5 * time.Millisecond)
+
+	return nil
 }
 
 func (us *UsbSerialAdapter) eraseFlashPage(start uint16, setStart bool) error {
@@ -82,6 +90,9 @@ func (us *UsbSerialAdapter) eraseFlashPage(start uint16, setStart bool) error {
 	if err := us.SendBreak(); err != nil {
 		return err
 	}
+
+	time.Sleep(5 * time.Millisecond)
+
 	return nil
 }
 
