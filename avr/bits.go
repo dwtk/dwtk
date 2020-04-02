@@ -9,6 +9,12 @@ const (
 )
 
 const (
+	EERE  = byte(1 << 0)
+	EEPE  = byte(1 << 1)
+	EEMPE = byte(1 << 2)
+)
+
+const (
 	LOW_FUSE      = 0x00
 	LOCKBIT       = 0x01
 	EXTENDED_FUSE = 0x02

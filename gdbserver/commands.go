@@ -160,8 +160,10 @@ func handleCommand(ctx context.Context, dw *debugwire.DebugWIRE, conn *tcpConn, 
 			if err := dw.WriteSRAM(uint16(a), b); err != nil {
 				return notifyGdb(err, []byte("E01"))
 			}
-		} else { // eeprom
-			return writePacket(conn, []byte("E01"))
+		} else {
+			if err := dw.WriteEEPROM(uint16(a), b); err != nil {
+				return notifyGdb(err, []byte("E01"))
+			}
 		}
 
 		return writePacket(conn, []byte("OK"))
@@ -200,8 +202,10 @@ func handleCommand(ctx context.Context, dw *debugwire.DebugWIRE, conn *tcpConn, 
 			if err := dw.ReadSRAM(uint16(a), b); err != nil {
 				return notifyGdb(err, []byte("E01"))
 			}
-		} else { // eeprom
-			return writePacket(conn, []byte("E01"))
+		} else {
+			if err := dw.ReadEEPROM(uint16(a), b); err != nil {
+				return notifyGdb(err, []byte("E01"))
+			}
 		}
 
 		d := make([]byte, hex.EncodedLen(len(b)))

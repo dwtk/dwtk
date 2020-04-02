@@ -186,7 +186,7 @@ func (spi *spiCommands) dwEnable(mcu *avr.MCU) error {
 	if err != nil {
 		return err
 	}
-	f &= ^(mcu.DwenBit)
+	f &= ^(mcu.DWENBit)
 	return spi.writeHFuse(f)
 }
 
@@ -201,6 +201,6 @@ func (spi *spiCommands) dwDisable(mcu *avr.MCU) error {
 	if err != nil {
 		return err
 	}
-	f |= mcu.DwenBit
+	f |= mcu.DWENBit
 	return spi.writeHFuse(f)
 }
