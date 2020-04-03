@@ -16,6 +16,11 @@ func (dw *DebugWIRE) WriteEEPROM(start uint16, b []byte) error {
 		)
 	}
 
+	w := make([]byte, len(b))
+	if err := dw.ReadEEPROM(start, w); err != nil {
+		return err
+	}
+
 	c := []byte{
 		avr.EEMPE,
 		avr.EEPE,
@@ -26,6 +31,13 @@ func (dw *DebugWIRE) WriteEEPROM(start uint16, b []byte) error {
 	}
 
 	for i := 0; i < len(b); i++ {
+		if b[i] == w[i] { // do not write unless needed
+			if err := dw.WriteInstruction(avr.ADIW(30, 1)); err != nil {
+				return err
+			}
+			continue
+		}
+
 		// EEARL
 		if err := dw.WriteInstruction(avr.OUT(dw.MCU.EECR+2, 30)); err != nil {
 			return err
