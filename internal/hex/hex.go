@@ -44,16 +44,16 @@ func Parse(path string) ([]byte, error) {
 		}
 
 		if len(t) < 11 {
-			return nil, &parseError{fmt.Sprintf("firmware: hex: not enough bytes to parse for line %d", line)}
+			return nil, &parseError{fmt.Sprintf("hex: not enough bytes to parse for line %d", line)}
 		}
 
 		if t[0] != ':' {
-			return nil, &parseError{fmt.Sprintf("firmware: hex: invalid start code for line %d: %q", line, t[0])}
+			return nil, &parseError{fmt.Sprintf("hex: invalid start code for line %d: %q", line, t[0])}
 		}
 
 		b, err := hex.DecodeString(t[1:])
 		if err != nil {
-			return nil, &parseError{fmt.Sprintf("firmware: hex: failed to decode record for line %d: %q", line, t[1:])}
+			return nil, &parseError{fmt.Sprintf("hex: failed to decode record for line %d: %q", line, t[1:])}
 		}
 
 		expected := b[len(b)-1]
@@ -62,7 +62,7 @@ func Parse(path string) ([]byte, error) {
 			calculated += i
 		}
 		if calculated+expected != 0x00 {
-			return nil, &parseError{fmt.Sprintf("firmware: hex: bad checksum for line %d", line)}
+			return nil, &parseError{fmt.Sprintf("hex: bad checksum for line %d", line)}
 		}
 
 		count := b[0]
@@ -73,13 +73,13 @@ func Parse(path string) ([]byte, error) {
 		switch recordType {
 		case 0:
 			if int(count)+5 != len(b) {
-				return nil, &parseError{fmt.Sprintf("firmware: hex: byte count and record length don't match for line %d", line)}
+				return nil, &parseError{fmt.Sprintf("hex: byte count and record length don't match for line %d", line)}
 			}
 			data = b[4 : 4+count]
 		case 1:
 			break
 		default:
-			return nil, &parseError{fmt.Sprintf("firmware: hex: unsupported record type for line %d: %d", line, recordType)}
+			return nil, &parseError{fmt.Sprintf("hex: unsupported record type for line %d: %d", line, recordType)}
 		}
 
 		l := uint64(len(data))

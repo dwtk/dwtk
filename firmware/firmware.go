@@ -7,7 +7,7 @@ import (
 
 	"github.com/dwtk/dwtk/avr"
 	"github.com/dwtk/dwtk/firmware/elf"
-	"github.com/dwtk/dwtk/firmware/hex"
+	"github.com/dwtk/dwtk/internal/hex"
 )
 
 type Page struct {
