@@ -181,6 +181,10 @@ func (d *device) getVersion() string {
 	return fmt.Sprintf("%s", d.dev.GetVersion())
 }
 
+func (d *device) getSerial() string {
+	return d.dev.GetSerial()
+}
+
 func (d *device) controlGetError() error {
 	f := make([]byte, 3)
 	if err := d.dev.ControlIn(cmdGetError, 0, 0, f); err != nil {

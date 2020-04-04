@@ -29,7 +29,12 @@ func New() (*DwtkIceAdapter, error) {
 	if dev == nil || err != nil {
 		return nil, err
 	}
-	logger.Debug.Printf(" * Detected dwtk-ice %s", dev.getVersion())
+	serial := dev.getSerial()
+	if serial != "" {
+		logger.Debug.Printf(" * Detected dwtk-ice %s (SN: %s)", dev.getVersion(), serial)
+	} else {
+		logger.Debug.Printf(" * Detected dwtk-ice %s", dev.getVersion())
+	}
 
 	var spi *spiCommands
 	if dev.spi {
@@ -94,7 +99,13 @@ func (dw *DwtkIceAdapter) Close() error {
 }
 
 func (dw *DwtkIceAdapter) Info() string {
-	info := fmt.Sprintf("dwtk-ice %s\n", dw.dev.getVersion())
+	info := ""
+	serial := dw.dev.getSerial()
+	if serial != "" {
+		info = fmt.Sprintf("dwtk-ice %s (SN: %s)\n", dw.dev.getVersion(), dw.dev.getSerial())
+	} else {
+		info = fmt.Sprintf("dwtk-ice %s\n", dw.dev.getVersion())
+	}
 	if dw.spiMode {
 		info += "\nTarget running on SPI ISP mode, try `dwtk enable` to enable debugWIRE mode.\n"
 	} else {

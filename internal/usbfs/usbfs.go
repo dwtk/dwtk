@@ -47,6 +47,7 @@ func (v *Version) Get() (byte, byte) {
 type Device struct {
 	version *Version
 	path    string
+	serial  string
 	open    bool
 	fd      int
 }
@@ -121,9 +122,20 @@ func GetDevices(idVendor uint16, idProduct uint16) ([]*Device, error) {
 			*d.val = uint16(val)
 		}
 
+		serial := ""
+		path = filepath.Join(rpath, "serial")
+		if _, err := os.Stat(path); err == nil {
+			b, err := ioutil.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			serial = strings.TrimSpace(string(b))
+		}
+
 		devices = append(devices, &Device{
 			version: &Version{byte(bcdDevice / 100), byte(bcdDevice % 100)},
 			path:    fmt.Sprintf("/dev/bus/usb/%03d/%03d", busnum, devnum),
+			serial:  serial,
 		})
 
 		return nil
@@ -134,6 +146,10 @@ func GetDevices(idVendor uint16, idProduct uint16) ([]*Device, error) {
 
 func (d *Device) GetVersion() *Version {
 	return d.version
+}
+
+func (d *Device) GetSerial() string {
+	return d.serial
 }
 
 func (d *Device) Open() error {
