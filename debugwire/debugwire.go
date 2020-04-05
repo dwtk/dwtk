@@ -17,7 +17,7 @@ type DebugWIRE struct {
 	swBreakpoints   map[uint16]uint16
 }
 
-func New(dwtkIce bool, serialPort string, baudrate uint32) (*DebugWIRE, error) {
+func New(dwtkIce string, serialPort string, baudrate uint32) (*DebugWIRE, error) {
 	a, err := adapters.New(dwtkIce, serialPort, baudrate)
 	if err != nil {
 		return nil, err

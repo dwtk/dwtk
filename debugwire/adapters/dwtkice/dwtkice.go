@@ -24,8 +24,8 @@ type DwtkIceAdapter struct {
 	spiMode        bool
 }
 
-func New() (*DwtkIceAdapter, error) {
-	dev, err := newDevice()
+func New(serialNumber string) (*DwtkIceAdapter, error) {
+	dev, err := newDevice(serialNumber)
 	if dev == nil || err != nil {
 		return nil, err
 	}

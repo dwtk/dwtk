@@ -13,7 +13,7 @@ var (
 	dw      *debugwire.DebugWIRE
 	noReset bool
 
-	dwtkIce    bool
+	dwtkIce    string
 	serialPort string
 	baudrate   uint32
 	frequency  float32
@@ -21,12 +21,12 @@ var (
 )
 
 func init() {
-	RootCmd.PersistentFlags().BoolVarP(
+	RootCmd.PersistentFlags().StringVarP(
 		&dwtkIce,
 		"dwtk-ice",
 		"i",
-		false,
-		"force usage of dwtk-ice. return error if no dwtk-ice device available",
+		"",
+		"dwtk-ice device serial number (e.g. a1b2c3d4) (Default: detect)",
 	)
 	RootCmd.PersistentFlags().StringVarP(
 		&serialPort,

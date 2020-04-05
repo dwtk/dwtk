@@ -51,16 +51,16 @@ type Adapter interface {
 	WriteLock(data byte) error
 }
 
-func New(dwtkIce bool, serialPort string, baudrate uint32) (Adapter, error) {
-	if dwtkIce || serialPort == "" {
-		adapter, err := dwtkice.New()
+func New(dwtkIce string, serialPort string, baudrate uint32) (Adapter, error) {
+	if dwtkIce != "" || serialPort == "" {
+		adapter, err := dwtkice.New(dwtkIce)
 		if err != nil {
 			return nil, err
 		}
 		if adapter != nil {
 			return adapter, nil
 		}
-		if dwtkIce {
+		if dwtkIce != "" {
 			return nil, fmt.Errorf("debugwire: adapters: dwtk-ice requested but no device found")
 		}
 	}

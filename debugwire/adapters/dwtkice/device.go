@@ -2,6 +2,7 @@ package dwtkice
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/dwtk/dwtk/internal/logger"
 	"github.com/dwtk/dwtk/internal/usbfs"
@@ -139,7 +140,7 @@ type device struct {
 	spi bool
 }
 
-func newDevice() (*device, error) {
+func newDevice(serialNumber string) (*device, error) {
 	devices, err := usbfs.GetDevices(vid, pid)
 	if err != nil {
 		return nil, err
@@ -147,14 +148,33 @@ func newDevice() (*device, error) {
 	if len(devices) == 0 {
 		return nil, nil
 	}
-	if len(devices) > 1 {
-		return nil, fmt.Errorf("debugwire: dwtk-ice: more than one device found. this is not supported")
+	var dev *usbfs.Device
+	if serialNumber == "" {
+		if len(devices) > 1 {
+			serials := []string{}
+			for _, s := range devices {
+				serials = append(serials, s.GetSerial())
+			}
+			return nil, fmt.Errorf("debugwire: dwtk-ice: more than one device found. this is not supported: %s",
+				strings.Join(serials, ", "))
+		}
+		dev = devices[0]
+	} else {
+		for _, d := range devices {
+			if serialNumber == d.GetSerial() {
+				dev = d
+				break
+			}
+		}
+		if dev == nil {
+			return nil, fmt.Errorf("debugwire: dwtk-ice: device not found: %s", serialNumber)
+		}
 	}
-	if err := devices[0].Open(); err != nil {
+	if err := dev.Open(); err != nil {
 		return nil, err
 	}
 	rv := &device{
-		dev: devices[0],
+		dev: dev,
 		spi: false,
 	}
 	b := make([]byte, 1)
