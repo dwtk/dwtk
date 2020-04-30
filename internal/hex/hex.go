@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 )
 
 type parseError struct {
@@ -16,12 +17,12 @@ func (p *parseError) Error() string {
 	return p.msg
 }
 
-func Check(path string) bool {
-	_, err := Parse(path)
-	if err != nil {
-		return err.(*parseError) == nil
+func Check(fpath string) bool {
+	if path.Ext(fpath) == ".hex" {
+		return true
 	}
-	return true
+	_, err := Parse(fpath)
+	return err == nil
 }
 
 func Parse(path string) ([]byte, error) {

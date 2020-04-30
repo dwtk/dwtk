@@ -4,12 +4,16 @@ import (
 	"debug/elf"
 	"fmt"
 	"io/ioutil"
+	"path"
 )
 
-func Check(path string) bool {
-	f, err := elf.Open(path)
+func Check(fpath string) bool {
+	if path.Ext(fpath) == ".elf" {
+		return true
+	}
+	f, err := elf.Open(fpath)
 	if err != nil {
-		return err.(*elf.FormatError) == nil
+		return false
 	}
 	f.Close()
 	return true
