@@ -7,7 +7,9 @@ import (
 	"path"
 )
 
-func Check(fpath string) bool {
+type ELF struct{}
+
+func (*ELF) Check(fpath string) bool {
 	if path.Ext(fpath) == ".elf" {
 		return true
 	}
@@ -19,8 +21,8 @@ func Check(fpath string) bool {
 	return true
 }
 
-func Parse(path string) ([]byte, error) {
-	f, err := elf.Open(path)
+func (*ELF) Parse(fpath string) ([]byte, error) {
+	f, err := elf.Open(fpath)
 	if err != nil {
 		return nil, err
 	}

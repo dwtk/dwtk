@@ -6,16 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
 )
-
-func Check(fpath string) bool {
-	if path.Ext(fpath) == ".hex" {
-		return true
-	}
-	_, err := Parse(fpath)
-	return err == nil
-}
 
 func Parse(path string) ([]byte, error) {
 	f, err := os.Open(path)

@@ -7,7 +7,7 @@ import (
 
 	"github.com/dwtk/dwtk/avr"
 	"github.com/dwtk/dwtk/firmware/elf"
-	"github.com/dwtk/dwtk/internal/hex"
+	"github.com/dwtk/dwtk/firmware/hex"
 )
 
 type Page struct {
@@ -19,6 +19,18 @@ type Firmware struct {
 	Data []byte
 	MCU  *avr.MCU
 }
+
+type format interface {
+	Check(fpath string) bool
+	Parse(fpath string) ([]byte, error)
+}
+
+var (
+	formats = []format{
+		&elf.ELF{},
+		&hex.Hex{},
+	}
+)
 
 func NewFromData(data []byte, mcu *avr.MCU) (*Firmware, error) {
 	if mcu == nil {
@@ -45,22 +57,15 @@ func NewFromFile(path string, mcu *avr.MCU) (*Firmware, error) {
 	}
 
 	data, err := func() ([]byte, error) {
-		if elf.Check(path) {
-			data, err := elf.Parse(path)
-			if err != nil {
-				return nil, err
+		for _, format := range formats {
+			if format.Check(path) {
+				data, err := format.Parse(path)
+				if err != nil {
+					return nil, err
+				}
+				return data, nil
 			}
-			return data, nil
 		}
-
-		if hex.Check(path) {
-			data, err := hex.Parse(path)
-			if err != nil {
-				return nil, err
-			}
-			return data, nil
-		}
-
 		return nil, fmt.Errorf("firmware: failed to detect firmware file format: %s", path)
 	}()
 	if err != nil {
@@ -92,5 +97,6 @@ func (f *Firmware) SplitPages() []*Page {
 }
 
 func (f *Firmware) Dump(path string) error {
-	return hex.Dump(path, f.Data)
+	h := &hex.Hex{}
+	return h.Dump(path, f.Data)
 }
