@@ -24,12 +24,8 @@ func ForFd(ctx context.Context, fd int, c chan bool) error {
 		fds.Zero()
 		fds.Set(fd)
 
-		r, err := unix.Select(fd+1, fds, nil, nil, &unix.Timeval{Usec: 100000})
-		if err != nil && err != unix.EINTR {
+		if _, err := unix.Select(fd+1, fds, nil, nil, &unix.Timeval{Usec: 100000}); err != nil && err != unix.EINTR {
 			return err
-		}
-		if r == -1 {
-			return fmt.Errorf("failed select")
 		}
 		if fds.IsSet(fd) {
 			c <- true
