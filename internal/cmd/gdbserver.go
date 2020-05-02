@@ -6,8 +6,8 @@ import (
 )
 
 var (
-	addr          string
-	disableTimers bool
+	addr      string
+	runTimers bool
 )
 
 func init() {
@@ -19,11 +19,11 @@ func init() {
 		"GDB server host:port",
 	)
 	GDBServerCmd.PersistentFlags().BoolVarP(
-		&disableTimers,
-		"disable-timers",
+		&runTimers,
+		"run-timers",
 		"t",
 		false,
-		"disable timers",
+		"Run timers",
 	)
 
 	RootCmd.AddCommand(GDBServerCmd)
@@ -35,7 +35,7 @@ var GDBServerCmd = &cobra.Command{
 	Long:  "This command starts a remote debuggins session for GDB.",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		dw.Timers = !disableTimers
+		dw.Timers = !runTimers
 		return gdbserver.ListenAndServe(addr, dw)
 	},
 }

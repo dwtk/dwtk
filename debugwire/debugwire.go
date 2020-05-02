@@ -24,7 +24,7 @@ func New(dwtkIce string, serialPort string, baudrate uint32) (*DebugWIRE, error)
 	}
 
 	rv := &DebugWIRE{
-		Timers: true,
+		Timers: false,
 
 		adapter:         a,
 		hwBreakpointSet: false,
