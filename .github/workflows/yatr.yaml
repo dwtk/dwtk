@@ -13,15 +13,16 @@ jobs:
           - dist-linux-amd64
           - dist-linux-armv6
           - dist-linux-armv7
+          - dist-linux-arm64
 
     steps:
       - name: Set up Go
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v2
         with:
           go-version: 1.14
 
       - name: Check out code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
 
       - name: Run yatr
         env:
