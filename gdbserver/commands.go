@@ -67,11 +67,11 @@ func handleCommand(ctx context.Context, dw *debugwire.DebugWIRE, conn *tcpConn, 
 			return notifyGdb(err, []byte("E01"))
 		}
 
-		if err := dw.SetSP(uint16(b[33]) | uint16(b[34]<<8)); err != nil {
+		if err := dw.SetSP(uint16(b[33]) | (uint16(b[34]) << 8)); err != nil {
 			return notifyGdb(err, []byte("E01"))
 		}
 
-		if err := dw.SetPC(uint16(b[35]) | uint16(b[36]<<8)); err != nil {
+		if err := dw.SetPC(uint16(b[35]) | (uint16(b[36]) << 8)); err != nil {
 			return notifyGdb(err, []byte("E01"))
 		}
 
