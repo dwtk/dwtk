@@ -24,10 +24,11 @@ func ForFd(ctx context.Context, fd int, c chan bool) error {
 		fds.Zero()
 		fds.Set(fd)
 
-		if _, err := unix.Select(fd+1, fds, nil, nil, &unix.Timeval{Usec: 100000}); err != nil && err != unix.EINTR {
+		n, err := unix.Select(fd+1, fds, nil, nil, &unix.Timeval{Usec: 100000})
+		if err != nil && err != unix.EINTR {
 			return err
 		}
-		if fds.IsSet(fd) {
+		if n == 1 && fds.IsSet(fd) {
 			c <- true
 			break
 		}
