@@ -16,7 +16,7 @@ func (dw *DebugWIRE) GetSP() (uint16, error) {
 	if err := dw.ReadSRAM(avr.SPL, c); err != nil {
 		return 0, err
 	}
-	return uint16(c[1]<<8) | uint16(c[0]), nil
+	return (uint16(c[1]) << 8) | uint16(c[0]), nil
 }
 
 func (dw *DebugWIRE) SetSREG(b byte) error {
