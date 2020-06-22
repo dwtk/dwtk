@@ -78,29 +78,29 @@ func handleCommand(ctx context.Context, dw *debugwire.DebugWIRE, conn *tcpConn, 
 		return writePacket(conn, []byte("OK"))
 
 	case 'g':
-		cache, err := dw.Cache(true)
+		b := make([]byte, 32)
+		if err := dw.ReadRegisters(0, b); err != nil {
+			return notifyGdb(err, []byte("E01"))
+		}
+
+		sreg, err := dw.GetSREG()
 		if err != nil {
 			return notifyGdb(err, []byte("E01"))
 		}
-		defer cache.Restore()
-
-		b := make([]byte, 27)
-		if err := dw.ReadRegisters(2, b); err != nil {
-			return notifyGdb(err, []byte("E01"))
-		}
-		b = append([]byte{cache.R0, cache.R1}, b...)
-		b = append(b,
-			cache.R29, cache.R30, cache.R31,
-			cache.SREG,
-		)
-
 		sp, err := dw.GetSP()
 		if err != nil {
 			return notifyGdb(err, []byte("E01"))
 		}
+		pc, err := dw.GetPC()
+		if err != nil {
+			return notifyGdb(err, []byte("E01"))
+		}
+
 		b = append(b,
+			sreg,
 			byte(sp), byte(sp>>8),
-			byte(cache.PC), byte(cache.PC>>8), 0, 0,
+			byte(pc), byte(pc>>8),
+			0, 0,
 		)
 
 		d := make([]byte, hex.EncodedLen(len(b)))
@@ -108,12 +108,6 @@ func handleCommand(ctx context.Context, dw *debugwire.DebugWIRE, conn *tcpConn, 
 		return writePacket(conn, d)
 
 	case 'M':
-		cache, err := dw.Cache(true)
-		if err != nil {
-			return notifyGdb(err, []byte("E01"))
-		}
-		defer cache.Restore()
-
 		h := strings.Split(scmd[1:], ":")
 		if len(h) != 2 {
 			return notifyGdb(
@@ -169,12 +163,6 @@ func handleCommand(ctx context.Context, dw *debugwire.DebugWIRE, conn *tcpConn, 
 		return writePacket(conn, []byte("OK"))
 
 	case 'm':
-		cache, err := dw.Cache(false)
-		if err != nil {
-			return notifyGdb(err, []byte("E01"))
-		}
-		defer cache.Restore()
-
 		p := strings.Split(scmd[1:], ",")
 		if len(p) != 2 {
 			return notifyGdb(
@@ -259,12 +247,6 @@ func handleCommand(ctx context.Context, dw *debugwire.DebugWIRE, conn *tcpConn, 
 
 		switch p[0][0] {
 		case '0':
-			cache, err := dw.Cache(true)
-			if err != nil {
-				return notifyGdb(err, []byte("E01"))
-			}
-			defer cache.Restore()
-
 			if add {
 				err = dw.SetSwBreakpoint(uint16(a))
 			} else {

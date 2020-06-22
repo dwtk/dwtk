@@ -35,7 +35,8 @@ var GDBServerCmd = &cobra.Command{
 	Long:  "This command starts a remote debuggins session for GDB.",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		dw.Timers = !runTimers
+		dw.Cache = true
+		dw.Timers = runTimers
 		return gdbserver.ListenAndServe(addr, dw)
 	},
 }

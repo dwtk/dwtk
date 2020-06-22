@@ -10,6 +10,7 @@ import (
 type DebugWIRE struct {
 	MCU    *avr.MCU
 	Timers bool
+	Cache  bool
 
 	adapter         adapters.Adapter
 	hwBreakpoint    uint16
@@ -116,22 +117,47 @@ func (dw *DebugWIRE) GetPC() (uint16, error) {
 }
 
 func (dw *DebugWIRE) WriteRegisters(start byte, regs []byte) error {
+	cache, err := dw.cache()
+	if err != nil {
+		return err
+	}
+	defer cache.restore()
 	return dw.adapter.WriteRegisters(start, regs)
 }
 
 func (dw *DebugWIRE) ReadRegisters(start byte, regs []byte) error {
+	cache, err := dw.cache()
+	if err != nil {
+		return err
+	}
+	defer cache.restore()
 	return dw.adapter.ReadRegisters(start, regs)
 }
 
 func (dw *DebugWIRE) WriteSRAM(start uint16, data []byte) error {
+	cache, err := dw.cache(30, 31)
+	if err != nil {
+		return err
+	}
+	defer cache.restore()
 	return dw.adapter.WriteSRAM(start, data)
 }
 
 func (dw *DebugWIRE) ReadSRAM(start uint16, data []byte) error {
+	cache, err := dw.cache(30, 31)
+	if err != nil {
+		return err
+	}
+	defer cache.restore()
 	return dw.adapter.ReadSRAM(start, data)
 }
 
 func (dw *DebugWIRE) ReadFuses() ([]byte, error) {
+	cache, err := dw.cache(28, 29, 30, 31)
+	if err != nil {
+		return nil, err
+	}
+	defer cache.restore()
 	return dw.adapter.ReadFuses()
 }
 func (dw *DebugWIRE) WriteLFuse(data byte) error {

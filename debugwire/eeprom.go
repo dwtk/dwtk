@@ -21,12 +21,18 @@ func (dw *DebugWIRE) WriteEEPROM(start uint16, b []byte) error {
 		return err
 	}
 
+	cache, err := dw.cache(0, 1, 28, 29, 30, 31)
+	if err != nil {
+		return err
+	}
+	defer cache.restore()
+
 	c := []byte{
 		avr.EEMPE,
 		avr.EEPE,
 		byte(start), byte(start >> 8),
 	}
-	if err := dw.WriteRegisters(28, c); err != nil {
+	if err := dw.adapter.WriteRegisters(28, c); err != nil {
 		return nil
 	}
 
@@ -49,7 +55,7 @@ func (dw *DebugWIRE) WriteEEPROM(start uint16, b []byte) error {
 				return err
 			}
 		}
-		if err := dw.WriteRegisters(0, []byte{b[i]}); err != nil {
+		if err := dw.adapter.WriteRegisters(0, []byte{b[i]}); err != nil {
 			return nil
 		}
 		// EEDR
@@ -84,11 +90,17 @@ func (dw *DebugWIRE) ReadEEPROM(start uint16, b []byte) error {
 		)
 	}
 
+	cache, err := dw.cache(0, 1, 29, 30, 31)
+	if err != nil {
+		return err
+	}
+	defer cache.restore()
+
 	c := []byte{
 		avr.EERE,
 		byte(start), byte(start >> 8),
 	}
-	if err := dw.WriteRegisters(29, c); err != nil {
+	if err := dw.adapter.WriteRegisters(29, c); err != nil {
 		return nil
 	}
 
@@ -114,7 +126,7 @@ func (dw *DebugWIRE) ReadEEPROM(start uint16, b []byte) error {
 		if err := dw.WriteInstruction(avr.IN(dw.MCU.EECR+1, 0)); err != nil {
 			return err
 		}
-		if err := dw.ReadRegisters(0, d); err != nil {
+		if err := dw.adapter.ReadRegisters(0, d); err != nil {
 			return err
 		}
 		b[i] = d[0]
