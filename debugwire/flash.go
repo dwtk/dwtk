@@ -5,12 +5,6 @@ import (
 )
 
 func (dw *DebugWIRE) WriteFlashPage(start uint16, b []byte) error {
-	cache, err := dw.cache(0, 1, 29, 30, 31)
-	if err != nil {
-		return err
-	}
-	defer cache.restore()
-
 	if uint16(len(b)) != dw.MCU.FlashPageSize {
 		return fmt.Errorf("debugwire: flash: page size must be 0x%04x for %s",
 			dw.MCU.FlashPageSize,
@@ -32,6 +26,12 @@ func (dw *DebugWIRE) WriteFlashPage(start uint16, b []byte) error {
 		)
 	}
 
+	cache, err := dw.cache(0, 1, 29, 30, 31)
+	if err != nil {
+		return err
+	}
+	defer cache.restore()
+
 	return dw.adapter.WriteFlashPage(start, b)
 }
 
@@ -44,6 +44,20 @@ func (dw *DebugWIRE) WriteFlashInstruction(start uint16, inst uint16) error {
 }
 
 func (dw *DebugWIRE) WriteFlash(start uint16, b []byte) error {
+	if start+uint16(len(b)) > dw.MCU.FlashSize {
+		return fmt.Errorf("debugwire: flash: writing out of flash space: 0x%04x + 0x%04x > 0x%04x",
+			start,
+			len(b),
+			dw.MCU.FlashSize,
+		)
+	}
+
+	cache, err := dw.cache(0, 1, 29, 30, 31)
+	if err != nil {
+		return err
+	}
+	defer cache.restore()
+
 	startPage := start / dw.MCU.FlashPageSize
 	endAddr := start + uint16(len(b))
 	endPage := (endAddr - 1) / dw.MCU.FlashPageSize
@@ -54,7 +68,7 @@ func (dw *DebugWIRE) WriteFlash(start uint16, b []byte) error {
 		addr := i * dw.MCU.FlashPageSize
 		page := make([]byte, dw.MCU.FlashPageSize)
 
-		if err := dw.ReadFlash(addr, page); err != nil {
+		if err := dw.adapter.ReadFlash(addr, page); err != nil {
 			return err
 		}
 
@@ -83,7 +97,7 @@ func (dw *DebugWIRE) WriteFlash(start uint16, b []byte) error {
 			k++
 		}
 
-		if err := dw.WriteFlashPage(addr, page); err != nil {
+		if err := dw.adapter.WriteFlashPage(addr, page); err != nil {
 			return err
 		}
 	}
@@ -92,12 +106,6 @@ func (dw *DebugWIRE) WriteFlash(start uint16, b []byte) error {
 }
 
 func (dw *DebugWIRE) EraseFlashPage(start uint16) error {
-	cache, err := dw.cache(0, 1, 29, 30, 31)
-	if err != nil {
-		return err
-	}
-	defer cache.restore()
-
 	if start%dw.MCU.FlashPageSize != 0 {
 		return fmt.Errorf("debugwire: flash: start address must be aligned to page start (page size: 0x%04x)",
 			dw.MCU.FlashPageSize,
@@ -112,16 +120,16 @@ func (dw *DebugWIRE) EraseFlashPage(start uint16) error {
 		)
 	}
 
-	return dw.adapter.EraseFlashPage(start)
-}
-
-func (dw *DebugWIRE) ReadFlash(start uint16, b []byte) error {
-	cache, err := dw.cache(30, 31)
+	cache, err := dw.cache(0, 1, 29, 30, 31)
 	if err != nil {
 		return err
 	}
 	defer cache.restore()
 
+	return dw.adapter.EraseFlashPage(start)
+}
+
+func (dw *DebugWIRE) ReadFlash(start uint16, b []byte) error {
 	if start+uint16(len(b)) > dw.MCU.FlashSize {
 		return fmt.Errorf("debugwire: flash: reading out of flash space: 0x%04x + 0x%04x > 0x%04x",
 			start,
@@ -129,6 +137,12 @@ func (dw *DebugWIRE) ReadFlash(start uint16, b []byte) error {
 			dw.MCU.FlashSize,
 		)
 	}
+
+	cache, err := dw.cache(30, 31)
+	if err != nil {
+		return err
+	}
+	defer cache.restore()
 
 	return dw.adapter.ReadFlash(start, b)
 }
