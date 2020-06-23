@@ -99,9 +99,86 @@ func handleCommand(ctx context.Context, dw *debugwire.DebugWIRE, conn *tcpConn, 
 		b = append(b,
 			sreg,
 			byte(sp), byte(sp>>8),
-			byte(pc), byte(pc>>8),
-			0, 0,
+			byte(pc), byte(pc>>8), 0, 0,
 		)
+
+		d := make([]byte, hex.EncodedLen(len(b)))
+		hex.Encode(d, b)
+		return writePacket(conn, d)
+
+	case 'P':
+		p := strings.Split(scmd[1:], "=")
+		if len(p) != 2 {
+			return notifyGdb(
+				fmt.Errorf("gdbserver: commands: malformed register write request: %s", cmd),
+				[]byte("E01"),
+			)
+		}
+
+		a, err := strconv.ParseUint(p[0], 16, 8)
+		if err != nil {
+			return notifyGdb(err, []byte("E01"))
+		}
+		b, err := strconv.ParseUint(p[1], 16, 32)
+		if err != nil {
+			return notifyGdb(err, []byte("E01"))
+		}
+
+		switch a {
+		case 32:
+			if err := dw.SetSREG(byte(b)); err != nil {
+				return notifyGdb(err, []byte("E01"))
+			}
+		case 33:
+			if err := dw.SetSP(uint16(b>>8) | (uint16(b&0xff) << 8)); err != nil {
+				return notifyGdb(err, []byte("E01"))
+			}
+		case 34:
+			if err := dw.SetPC(uint16(b>>24) | (uint16(b >> 8))); err != nil {
+				return notifyGdb(err, []byte("E01"))
+			}
+		default:
+			if err := dw.WriteRegisters(byte(a), []byte{byte(b)}); err != nil {
+				return notifyGdb(err, []byte("E01"))
+			}
+		}
+
+		return writePacket(conn, []byte("OK"))
+
+	case 'p':
+		a, err := strconv.ParseUint(scmd[1:], 16, 8)
+		if err != nil {
+			return notifyGdb(err, []byte("E01"))
+		}
+
+		b := []byte{}
+
+		switch a {
+		case 32:
+			sreg, err := dw.GetSREG()
+			if err != nil {
+				return notifyGdb(err, []byte("E01"))
+			}
+			b = append(b, sreg)
+		case 33:
+			sp, err := dw.GetSP()
+			if err != nil {
+				return notifyGdb(err, []byte("E01"))
+			}
+			b = append(b, byte(sp), byte(sp>>8))
+		case 34:
+			pc, err := dw.GetPC()
+			if err != nil {
+				return notifyGdb(err, []byte("E01"))
+			}
+			b = append(b, byte(pc), byte(pc>>8), 0, 0)
+		default:
+			t := make([]byte, 1)
+			if err := dw.ReadRegisters(byte(a), t); err != nil {
+				return notifyGdb(err, []byte("E01"))
+			}
+			b = append(b, t...)
+		}
 
 		d := make([]byte, hex.EncodedLen(len(b)))
 		hex.Encode(d, b)
