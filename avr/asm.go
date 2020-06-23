@@ -58,3 +58,15 @@ func SPM() uint16 {
 	op := uint16(0b1001010111101000)
 	return op
 }
+
+func LDI(reg byte, val byte) uint16 {
+	// opcode: 1110 KKKK dddd KKKK
+	op := uint16(0b1110000000000000)
+	kh := uint16(0b11110000 & val)
+	kh <<= 4
+	kl := uint16(0b1111 & val)
+	reg -= byte(16)
+	de := uint16(0b1111 & reg)
+	de <<= 4
+	return op | kh | kl | de
+}

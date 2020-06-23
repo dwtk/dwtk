@@ -117,6 +117,10 @@ func (dw *DebugWIRE) GetPC() (uint16, error) {
 }
 
 func (dw *DebugWIRE) WriteRegisters(start byte, regs []byte) error {
+	if len(regs) == 1 && start >= 16 {
+		return dw.adapter.WriteInstruction(avr.LDI(start, regs[0]))
+	}
+
 	cache, err := dw.cache()
 	if err != nil {
 		return err
