@@ -6,7 +6,9 @@ import (
 	"bytes"
 	"fmt"
 	"path/filepath"
+	"syscall"
 	"time"
+	"unsafe"
 
 	"github.com/dwtk/dwtk/internal/logger"
 	"golang.org/x/sys/unix"
@@ -21,6 +23,19 @@ func ListDevices() ([]string, error) {
 		return []string{}, nil
 	}
 	return m, nil
+}
+
+func ioctl(fd int, req uint, arg uintptr) error {
+	for {
+		_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, uintptr(fd), uintptr(req), arg)
+		if errno == 0 {
+			return nil
+		}
+		if errno != syscall.EINTR {
+			return fmt.Errorf("usbserial: %s", errno)
+		}
+	}
+	return nil
 }
 
 func open(portDevice string, baudrate uint32) (int, error) {
@@ -42,7 +57,7 @@ func open(portDevice string, baudrate uint32) (int, error) {
 	// as we always receive the echo from our own transmission, 200ms is enough, and bigger than our maximum frame time
 	cfg.Cc[unix.VTIME] = 2
 
-	if err := unix.IoctlSetTermios(fd, unix.TCSETS2, cfg); err != nil {
+	if err := ioctl(fd, unix.TCSETS2, uintptr(unsafe.Pointer(cfg))); err != nil {
 		unix.Close(fd)
 		return -1, err
 	}
@@ -62,7 +77,7 @@ func _close(fd int) error {
 }
 
 func flush(fd int) error {
-	return unix.IoctlSetInt(fd, unix.TCFLSH, unix.TCIOFLUSH)
+	return ioctl(fd, unix.TCFLSH, uintptr(unix.TCIOFLUSH))
 }
 
 func read(fd int, p []byte) error {
@@ -114,14 +129,14 @@ func write(fd int, p []byte) error {
 func sendBreak(fd int, baudrate uint32) error {
 	logger.Debug.Print("> break")
 
-	if err := unix.IoctlSetInt(fd, unix.TIOCSBRK, 0); err != nil {
+	if err := ioctl(fd, unix.TIOCSBRK, 0); err != nil {
 		return err
 	}
 
 	// we consider a frame as 10 bits, and send ~2 frames.
 	time.Sleep(time.Duration(float64(20000000)/float64(baudrate)) * time.Microsecond)
 
-	return unix.IoctlSetInt(fd, unix.TIOCCBRK, 0)
+	return ioctl(fd, unix.TIOCCBRK, 0)
 }
 
 func recvBreak(fd int) (byte, error) {
