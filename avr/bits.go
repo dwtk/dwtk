@@ -22,8 +22,8 @@ const (
 )
 
 const (
-	SPMCSR = 0x37
-	SPL    = 0x5d
-	SPH    = 0x5e
-	SREG   = 0x5f
+	SPMCSR SFR = 0x37
+	SPL    SFR = 0x3d
+	SPH    SFR = 0x3e
+	SREG   SFR = 0x3f
 )

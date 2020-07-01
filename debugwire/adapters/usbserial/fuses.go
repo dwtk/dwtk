@@ -21,7 +21,7 @@ func (us *UsbSerialAdapter) ReadFuses() ([]byte, error) {
 			return nil, err
 		}
 
-		if err := us.WriteInstruction(avr.OUT(avr.SPMCSR, 29)); err != nil {
+		if err := us.WriteInstruction(avr.OUT(avr.SPMCSR.IO(), 29)); err != nil {
 			return nil, err
 		}
 
