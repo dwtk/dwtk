@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/dwtk/devices"
 	"github.com/dwtk/dwtk/avr"
 )
 
@@ -178,7 +179,7 @@ func (spi *spiCommands) writeLock(l byte) error {
 	return nil
 }
 
-func (spi *spiCommands) dwEnable(mcu *avr.MCU) error {
+func (spi *spiCommands) dwEnable(mcu *devices.MCU) error {
 	if mcu == nil {
 		return errors.New("debugwire: dwtk-ice: mcu not set")
 	}
@@ -186,11 +187,11 @@ func (spi *spiCommands) dwEnable(mcu *avr.MCU) error {
 	if err != nil {
 		return err
 	}
-	f &= ^(mcu.DWENBit)
+	f &= ^(mcu.DWENMask())
 	return spi.writeHFuse(f)
 }
 
-func (spi *spiCommands) dwDisable(mcu *avr.MCU) error {
+func (spi *spiCommands) dwDisable(mcu *devices.MCU) error {
 	if mcu == nil {
 		return errors.New("debugwire: dwtk-ice: mcu not set")
 	}
@@ -201,6 +202,6 @@ func (spi *spiCommands) dwDisable(mcu *avr.MCU) error {
 	if err != nil {
 		return err
 	}
-	f |= mcu.DWENBit
+	f |= mcu.DWENMask()
 	return spi.writeHFuse(f)
 }

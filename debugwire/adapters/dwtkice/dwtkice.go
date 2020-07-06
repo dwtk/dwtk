@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dwtk/dwtk/avr"
+	"github.com/dwtk/devices"
 	"github.com/dwtk/dwtk/internal/logger"
 )
 
@@ -17,7 +17,7 @@ var (
 type DwtkIceAdapter struct {
 	dev            *device
 	spi            *spiCommands
-	mcu            *avr.MCU
+	mcu            *devices.MCU
 	ubrr           uint16
 	targetBaudrate uint32
 	actualBaudrate uint32
@@ -124,7 +124,7 @@ Baudrate Register: 0x%04x
 	return info
 }
 
-func (dw *DwtkIceAdapter) SetMCU(mcu *avr.MCU) {
+func (dw *DwtkIceAdapter) SetMCU(mcu *devices.MCU) {
 	dw.mcu = mcu
 }
 

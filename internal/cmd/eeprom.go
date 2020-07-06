@@ -35,7 +35,7 @@ var EEPROMCmd = &cobra.Command{
 			return err
 		}
 
-		cmd.Printf("Writing 0x%04x bytes to EEPROM ...\n", dw.MCU.EEPROMSize)
+		cmd.Printf("Writing 0x%04x bytes to EEPROM ...\n", dw.MCU.EEPROMSize())
 		if err := dw.WriteEEPROM(0, f); err != nil {
 			return err
 		}
@@ -45,7 +45,7 @@ var EEPROMCmd = &cobra.Command{
 		}
 
 		read := make([]byte, len(f))
-		cmd.Printf("Verifying 0x%04x bytes from EEPROM ...\n", dw.MCU.EEPROMSize)
+		cmd.Printf("Verifying 0x%04x bytes from EEPROM ...\n", dw.MCU.EEPROMSize())
 		if err := dw.ReadEEPROM(0, read); err != nil {
 			return err
 		}

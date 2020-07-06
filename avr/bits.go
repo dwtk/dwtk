@@ -20,10 +20,3 @@ const (
 	EXTENDED_FUSE = 0x02
 	HIGH_FUSE     = 0x03
 )
-
-const (
-	SPMCSR SFR = 0x37
-	SPL    SFR = 0x3d
-	SPH    SFR = 0x3e
-	SREG   SFR = 0x3f
-)

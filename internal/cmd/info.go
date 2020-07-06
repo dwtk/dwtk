@@ -18,7 +18,7 @@ var InfoCmd = &cobra.Command{
 		cmd.Print(dw.Info())
 		cmd.Printf("\n")
 
-		cmd.Printf("Target MCU: %s\n", dw.MCU.Name)
+		cmd.Printf("Target MCU: %s\n", dw.MCU.Name())
 
 		f, err := dw.ReadFuses()
 		if err != nil {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/dwtk/dwtk/avr"
+	"github.com/dwtk/devices"
 	"github.com/dwtk/dwtk/debugwire/adapters/dwtkice"
 	"github.com/dwtk/dwtk/debugwire/adapters/usbserial"
 )
@@ -12,7 +12,7 @@ import (
 type Adapter interface {
 	Close() error
 	Info() string
-	SetMCU(mcu *avr.MCU)
+	SetMCU(mcu *devices.MCU)
 
 	Enable() error
 	Disable() error

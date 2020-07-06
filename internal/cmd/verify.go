@@ -25,7 +25,7 @@ var VerifyCmd = &cobra.Command{
 
 		pages := f.SplitPages()
 
-		read := make([]byte, dw.MCU.FlashPageSize)
+		read := make([]byte, dw.MCU.FlashPageSize())
 		for i, page := range pages {
 			cmd.Printf("Verifying page 0x%04x (%d/%d) ...\n", page.Address, i+1, len(pages))
 			if err := dw.ReadFlash(page.Address, read); err != nil {

@@ -5,24 +5,24 @@ import (
 )
 
 func (dw *DebugWIRE) WriteFlashPage(start uint16, b []byte) error {
-	if uint16(len(b)) != dw.MCU.FlashPageSize {
+	if uint16(len(b)) != dw.MCU.FlashPageSize() {
 		return fmt.Errorf("debugwire: flash: page size must be 0x%04x for %s",
-			dw.MCU.FlashPageSize,
-			dw.MCU.Name,
+			dw.MCU.FlashPageSize(),
+			dw.MCU.Name(),
 		)
 	}
 
-	if start%dw.MCU.FlashPageSize != 0 {
+	if start%dw.MCU.FlashPageSize() != 0 {
 		return fmt.Errorf("debugwire: flash: start address must be aligned to page start (page size: 0x%04x)",
-			dw.MCU.FlashPageSize,
+			dw.MCU.FlashPageSize(),
 		)
 	}
 
-	if start+dw.MCU.FlashPageSize > dw.MCU.FlashSize {
+	if start+dw.MCU.FlashPageSize() > dw.MCU.FlashSize() {
 		return fmt.Errorf("debugwire: flash: writing out of flash space: 0x%04x + 0x%04x > 0x%04x",
 			start,
-			dw.MCU.FlashPageSize,
-			dw.MCU.FlashSize,
+			dw.MCU.FlashPageSize(),
+			dw.MCU.FlashSize(),
 		)
 	}
 
@@ -44,11 +44,11 @@ func (dw *DebugWIRE) WriteFlashInstruction(start uint16, inst uint16) error {
 }
 
 func (dw *DebugWIRE) WriteFlash(start uint16, b []byte) error {
-	if start+uint16(len(b)) > dw.MCU.FlashSize {
+	if start+uint16(len(b)) > dw.MCU.FlashSize() {
 		return fmt.Errorf("debugwire: flash: writing out of flash space: 0x%04x + 0x%04x > 0x%04x",
 			start,
 			len(b),
-			dw.MCU.FlashSize,
+			dw.MCU.FlashSize(),
 		)
 	}
 
@@ -58,15 +58,15 @@ func (dw *DebugWIRE) WriteFlash(start uint16, b []byte) error {
 	}
 	defer cache.restore()
 
-	startPage := start / dw.MCU.FlashPageSize
+	startPage := start / dw.MCU.FlashPageSize()
 	endAddr := start + uint16(len(b))
-	endPage := (endAddr - 1) / dw.MCU.FlashPageSize
+	endPage := (endAddr - 1) / dw.MCU.FlashPageSize()
 
 	pages := make(map[int][]byte)
 
 	for i := startPage; i <= endPage; i++ {
-		addr := i * dw.MCU.FlashPageSize
-		page := make([]byte, dw.MCU.FlashPageSize)
+		addr := i * dw.MCU.FlashPageSize()
+		page := make([]byte, dw.MCU.FlashPageSize())
 
 		if err := dw.adapter.ReadFlash(addr, page); err != nil {
 			return err
@@ -77,7 +77,7 @@ func (dw *DebugWIRE) WriteFlash(start uint16, b []byte) error {
 
 	k := 0
 	for i := startPage; i <= endPage; i++ {
-		addr := i * dw.MCU.FlashPageSize
+		addr := i * dw.MCU.FlashPageSize()
 		page, ok := pages[int(i)]
 		if !ok {
 			return fmt.Errorf("debugwire: flash: bad page split")
@@ -88,8 +88,8 @@ func (dw *DebugWIRE) WriteFlash(start uint16, b []byte) error {
 			pStart = start - addr
 		}
 		pEnd := endAddr - addr
-		if pEnd > dw.MCU.FlashPageSize {
-			pEnd = dw.MCU.FlashPageSize
+		if pEnd > dw.MCU.FlashPageSize() {
+			pEnd = dw.MCU.FlashPageSize()
 		}
 
 		for j := pStart; j < pEnd; j++ {
@@ -106,17 +106,17 @@ func (dw *DebugWIRE) WriteFlash(start uint16, b []byte) error {
 }
 
 func (dw *DebugWIRE) EraseFlashPage(start uint16) error {
-	if start%dw.MCU.FlashPageSize != 0 {
+	if start%dw.MCU.FlashPageSize() != 0 {
 		return fmt.Errorf("debugwire: flash: start address must be aligned to page start (page size: 0x%04x)",
-			dw.MCU.FlashPageSize,
+			dw.MCU.FlashPageSize(),
 		)
 	}
 
-	if start+dw.MCU.FlashPageSize > dw.MCU.FlashSize {
+	if start+dw.MCU.FlashPageSize() > dw.MCU.FlashSize() {
 		return fmt.Errorf("debugwire: flash: erasing out of flash space: 0x%04x + 0x%04x > 0x%04x",
 			start,
-			dw.MCU.FlashPageSize,
-			dw.MCU.FlashSize,
+			dw.MCU.FlashPageSize(),
+			dw.MCU.FlashSize(),
 		)
 	}
 
@@ -130,11 +130,11 @@ func (dw *DebugWIRE) EraseFlashPage(start uint16) error {
 }
 
 func (dw *DebugWIRE) ReadFlash(start uint16, b []byte) error {
-	if start+uint16(len(b)) > dw.MCU.FlashSize {
+	if start+uint16(len(b)) > dw.MCU.FlashSize() {
 		return fmt.Errorf("debugwire: flash: reading out of flash space: 0x%04x + 0x%04x > 0x%04x",
 			start,
 			len(b),
-			dw.MCU.FlashSize,
+			dw.MCU.FlashSize(),
 		)
 	}
 

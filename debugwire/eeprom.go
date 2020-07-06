@@ -18,24 +18,21 @@ func (dw *DebugWIRE) readEEPROM(start uint16, b []byte) error {
 
 	d := make([]byte, 1)
 	for i := 0; i < len(b); i++ {
-		// EEARL
-		if err := dw.WriteInstruction(avr.OUT(dw.MCU.EECR+2, 30)); err != nil {
+		if err := dw.WriteInstruction(avr.OUT(dw.MCU.EEAR().Io8(), 30)); err != nil {
 			return err
 		}
-		if dw.MCU.WithEEARH {
-			// EEARH
-			if err := dw.WriteInstruction(avr.OUT(dw.MCU.EECR+3, 31)); err != nil {
+		if dw.MCU.EEAR().Size() > 1 {
+			if err := dw.WriteInstruction(avr.OUT(dw.MCU.EEAR().Io8()+1, 31)); err != nil {
 				return err
 			}
 		}
-		if err := dw.WriteInstruction(avr.OUT(dw.MCU.EECR, 29)); err != nil {
+		if err := dw.WriteInstruction(avr.OUT(dw.MCU.EECR().Io8(), 29)); err != nil {
 			return err
 		}
 		if err := dw.WriteInstruction(avr.ADIW(30, 1)); err != nil {
 			return err
 		}
-		// EEDR
-		if err := dw.WriteInstruction(avr.IN(dw.MCU.EECR+1, 0)); err != nil {
+		if err := dw.WriteInstruction(avr.IN(dw.MCU.EEDR().Io8(), 0)); err != nil {
 			return err
 		}
 		if err := dw.adapter.ReadRegisters(0, d); err != nil {
@@ -48,11 +45,11 @@ func (dw *DebugWIRE) readEEPROM(start uint16, b []byte) error {
 }
 
 func (dw *DebugWIRE) WriteEEPROM(start uint16, b []byte) error {
-	if start+uint16(len(b)) > dw.MCU.EEPROMSize {
+	if start+uint16(len(b)) > dw.MCU.EEPROMSize() {
 		return fmt.Errorf("debugwire: eeprom: writing out of eeprom space: 0x%04x + 0x%04x > 0x%04x",
 			start,
 			len(b),
-			dw.MCU.EEPROMSize,
+			dw.MCU.EEPROMSize(),
 		)
 	}
 
@@ -84,31 +81,27 @@ func (dw *DebugWIRE) WriteEEPROM(start uint16, b []byte) error {
 			continue
 		}
 
-		// EEARL
-		if err := dw.WriteInstruction(avr.OUT(dw.MCU.EECR+2, 30)); err != nil {
+		if err := dw.WriteInstruction(avr.OUT(dw.MCU.EEAR().Io8(), 30)); err != nil {
 			return err
 		}
-		//
-		if dw.MCU.WithEEARH {
-			// EEARH
-			if err := dw.WriteInstruction(avr.OUT(dw.MCU.EECR+3, 31)); err != nil {
+		if dw.MCU.EEAR().Size() > 1 {
+			if err := dw.WriteInstruction(avr.OUT(dw.MCU.EEAR().Io8()+1, 31)); err != nil {
 				return err
 			}
 		}
 		if err := dw.adapter.WriteRegisters(0, []byte{b[i]}); err != nil {
 			return nil
 		}
-		// EEDR
-		if err := dw.WriteInstruction(avr.OUT(dw.MCU.EECR+1, 0)); err != nil {
+		if err := dw.WriteInstruction(avr.OUT(dw.MCU.EEDR().Io8(), 0)); err != nil {
 			return err
 		}
 		if err := dw.WriteInstruction(avr.ADIW(30, 1)); err != nil {
 			return err
 		}
-		if err := dw.WriteInstruction(avr.OUT(dw.MCU.EECR, 28)); err != nil {
+		if err := dw.WriteInstruction(avr.OUT(dw.MCU.EECR().Io8(), 28)); err != nil {
 			return err
 		}
-		if err := dw.WriteInstruction(avr.OUT(dw.MCU.EECR, 29)); err != nil {
+		if err := dw.WriteInstruction(avr.OUT(dw.MCU.EECR().Io8(), 29)); err != nil {
 			return err
 		}
 		if err := dw.SendBreak(); err != nil {
@@ -122,11 +115,11 @@ func (dw *DebugWIRE) WriteEEPROM(start uint16, b []byte) error {
 }
 
 func (dw *DebugWIRE) ReadEEPROM(start uint16, b []byte) error {
-	if start+uint16(len(b)) > dw.MCU.EEPROMSize {
+	if start+uint16(len(b)) > dw.MCU.EEPROMSize() {
 		return fmt.Errorf("debugwire: eeprom: reading out of eeprom space: 0x%04x + 0x%04x > 0x%04x",
 			start,
 			len(b),
-			dw.MCU.EEPROMSize,
+			dw.MCU.EEPROMSize(),
 		)
 	}
 

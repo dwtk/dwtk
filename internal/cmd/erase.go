@@ -16,9 +16,9 @@ var EraseCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		noReset = true
 
-		numPages := dw.MCU.FlashSize / uint16(dw.MCU.FlashPageSize)
+		numPages := dw.MCU.FlashSize() / uint16(dw.MCU.FlashPageSize())
 		for i := uint16(0); i < numPages; i++ {
-			address := i * dw.MCU.FlashPageSize
+			address := i * dw.MCU.FlashPageSize()
 			cmd.Printf("Erasing page 0x%04x (%d/%d) ...\n", address, i+1, numPages)
 			if err := dw.EraseFlashPage(address); err != nil {
 				return err

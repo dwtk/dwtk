@@ -3,12 +3,12 @@ package debugwire
 import (
 	"context"
 
-	"github.com/dwtk/dwtk/avr"
+	"github.com/dwtk/devices"
 	"github.com/dwtk/dwtk/debugwire/adapters"
 )
 
 type DebugWIRE struct {
-	MCU    *avr.MCU
+	MCU    *devices.MCU
 	Timers bool
 	Cache  bool
 
@@ -38,7 +38,7 @@ func New(dwtkIce string, serialPort string, baudrate uint32) (*DebugWIRE, error)
 		return nil, err
 	}
 
-	rv.MCU, err = avr.GetMCU(sign)
+	rv.MCU, err = devices.GetMCU(sign)
 	if err != nil {
 		rv.Close()
 		return nil, err

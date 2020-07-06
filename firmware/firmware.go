@@ -5,7 +5,7 @@ import (
 	"math"
 	"os"
 
-	"github.com/dwtk/dwtk/avr"
+	"github.com/dwtk/devices"
 	"github.com/dwtk/dwtk/firmware/elf"
 	"github.com/dwtk/dwtk/firmware/hex"
 )
@@ -17,7 +17,7 @@ type Page struct {
 
 type Firmware struct {
 	Data []byte
-	MCU  *avr.MCU
+	MCU  *devices.MCU
 }
 
 type format interface {
@@ -32,16 +32,16 @@ var (
 	}
 )
 
-func NewFromData(data []byte, mcu *avr.MCU) (*Firmware, error) {
+func NewFromData(data []byte, mcu *devices.MCU) (*Firmware, error) {
 	if mcu == nil {
 		return nil, fmt.Errorf("firmware: MCU must be set")
 	}
 
-	if uint16(len(data)) > mcu.FlashSize {
+	if uint16(len(data)) > mcu.FlashSize() {
 		return nil, fmt.Errorf("firmware: size (%d) bigger than %s flash (%d)",
 			len(data),
-			mcu.Name,
-			mcu.FlashSize,
+			mcu.Name(),
+			mcu.FlashSize(),
 		)
 	}
 
@@ -51,7 +51,7 @@ func NewFromData(data []byte, mcu *avr.MCU) (*Firmware, error) {
 	}, nil
 }
 
-func NewFromFile(path string, mcu *avr.MCU) (*Firmware, error) {
+func NewFromFile(path string, mcu *devices.MCU) (*Firmware, error) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return nil, err
 	}
@@ -77,15 +77,15 @@ func NewFromFile(path string, mcu *avr.MCU) (*Firmware, error) {
 
 func (f *Firmware) SplitPages() []*Page {
 	pages := []*Page{}
-	n := uint16(math.Ceil(float64(len(f.Data)) / float64(f.MCU.FlashPageSize)))
+	n := uint16(math.Ceil(float64(len(f.Data)) / float64(f.MCU.FlashPageSize())))
 	for i := uint16(0); i < n; i++ {
-		c := make([]byte, f.MCU.FlashPageSize)
-		addr := i * f.MCU.FlashPageSize
+		c := make([]byte, f.MCU.FlashPageSize())
+		addr := i * f.MCU.FlashPageSize()
 		var j uint16
-		for j = 0; j < f.MCU.FlashPageSize && (addr+j) < uint16(len(f.Data)); j++ {
+		for j = 0; j < f.MCU.FlashPageSize() && (addr+j) < uint16(len(f.Data)); j++ {
 			c[j] = f.Data[addr+j]
 		}
-		for ; j < f.MCU.FlashPageSize; j++ {
+		for ; j < f.MCU.FlashPageSize(); j++ {
 			c[j] = 0xff // empty = 0xff
 		}
 		pages = append(pages, &Page{
