@@ -33,10 +33,32 @@ func (us *UsbSerialAdapter) spm() error {
 	if err := us.WriteInstruction(avr.OUT(us.mcu.SPMCSR().Io8(), 29)); err != nil {
 		return err
 	}
+	if err := us.SetPC(us.mcu.NRWWStart()); err != nil {
+		return err
+	}
 	return us.WriteInstruction(avr.SPM())
 }
 
+func (us *UsbSerialAdapter) enableRWW() error {
+	if us.mcu.NRWWStart() == 0 {
+		return nil
+	}
+
+	c := []byte{
+		avr.RWWSRE | avr.SPMEN, // to set SPMCSR
+	}
+	if err := us.WriteRegisters(29, c); err != nil {
+		return err
+	}
+	if err := us.spm(); err != nil {
+		return err
+	}
+	return us.waitSPCMSR(avr.RWWSB)
+}
+
 func (us *UsbSerialAdapter) WriteFlashPage(start uint16, b []byte) error {
+	// several devices won't have CTPB, but they have RWWSRE, that is the same
+	// bit and includes the CTPB functionality
 	c := []byte{
 		avr.CTPB | avr.SPMEN,          // to set SPMCSR
 		byte(start), byte(start >> 8), // Z
@@ -83,7 +105,10 @@ func (us *UsbSerialAdapter) WriteFlashPage(start uint16, b []byte) error {
 	if err := us.spm(); err != nil {
 		return err
 	}
-	return us.waitSPCMSR(avr.SPMEN)
+	if err := us.waitSPCMSR(avr.SPMEN); err != nil {
+		return err
+	}
+	return us.enableRWW()
 }
 
 func (us *UsbSerialAdapter) eraseFlashPage(start uint16, setStart bool) error {
