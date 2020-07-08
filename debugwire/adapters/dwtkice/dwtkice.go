@@ -325,7 +325,7 @@ func (dw *DwtkIceAdapter) WriteFlashPage(start uint16, data []byte) error {
 		return errNotSupportedSpi
 	}
 
-	return dw.dev.controlOut(cmdWriteFlashPage, start, 0, data)
+	return dw.dev.controlOut(cmdWriteFlashPage, start, dw.mcu.NRWWStart(), data)
 }
 
 func (dw *DwtkIceAdapter) EraseFlashPage(start uint16) error {
@@ -333,7 +333,7 @@ func (dw *DwtkIceAdapter) EraseFlashPage(start uint16) error {
 		return errNotSupportedSpi
 	}
 
-	return dw.dev.controlIn(cmdEraseFlashPage, start, 0, nil)
+	return dw.dev.controlIn(cmdEraseFlashPage, start, dw.mcu.NRWWStart(), nil)
 }
 
 func (dw *DwtkIceAdapter) ReadFlash(start uint16, data []byte) error {
