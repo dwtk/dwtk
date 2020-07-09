@@ -13,6 +13,7 @@ type Adapter interface {
 	Close() error
 	Info() string
 	SetMCU(mcu *devices.MCU)
+	GetMCU() *devices.MCU
 
 	Enable() error
 	Disable() error

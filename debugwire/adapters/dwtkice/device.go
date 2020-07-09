@@ -54,6 +54,11 @@ const (
 )
 
 const (
+	errNone = iota
+	errUnsupported
+)
+
+const (
 	errSpiPgmEnable = iota + 0x20
 	errSpiEchoMismatch
 )
@@ -97,7 +102,10 @@ var (
 		cmdReadFuses:        "cmdReadFuses",
 	}
 
-	iceErrors = map[uint8]func(byte, byte) error{
+	iceErrors = map[byte]func(byte, byte) error{
+		errUnsupported: func(_ byte, _ byte) error {
+			return errCmdUnsupported
+		},
 		errSpiPgmEnable: func(_ byte, _ byte) error {
 			return fmt.Errorf("debugwire: dwtk-ice: SPI programming enable failed")
 		},
@@ -124,7 +132,7 @@ func codeToError(e []byte) error {
 		return fmt.Errorf("debugwire: dwtk-ice: invalid error: %v", e)
 	}
 
-	if e[0] == 0 {
+	if e[0] == errNone {
 		return nil
 	}
 

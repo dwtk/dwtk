@@ -6,12 +6,14 @@ import (
 	"time"
 
 	"github.com/dwtk/devices"
+	"github.com/dwtk/dwtk/debugwire/adapters/common"
 	"github.com/dwtk/dwtk/internal/logger"
 )
 
 var (
 	errNotSupportedDw  = errors.New("debugwire: dwtk-ice: operation not supported: target running on debugWIRE mode, try `dwtk disable`")
 	errNotSupportedSpi = errors.New("debugwire: dwtk-ice: operation not supported: target running on SPI ISP mode, try `dwtk enable`")
+	errCmdUnsupported  = errors.New("debugwire: dwtk-ice: command not supported")
 )
 
 type DwtkIceAdapter struct {
@@ -126,6 +128,10 @@ Baudrate Register: 0x%04x
 
 func (dw *DwtkIceAdapter) SetMCU(mcu *devices.MCU) {
 	dw.mcu = mcu
+}
+
+func (dw *DwtkIceAdapter) GetMCU() *devices.MCU {
+	return dw.mcu
 }
 
 func (dw *DwtkIceAdapter) Enable() error {
@@ -366,10 +372,16 @@ func (dw *DwtkIceAdapter) ReadFuses() ([]byte, error) {
 		}
 		return f, nil
 	}
-	if err := dw.dev.controlIn(cmdReadFuses, 0, 0, f); err != nil {
+
+	err := dw.dev.controlIn(cmdReadFuses, 0, 0, f)
+	if err == nil {
+		return f, nil
+	}
+	if err != errCmdUnsupported {
 		return nil, err
 	}
-	return f, nil
+
+	return common.ReadFuses(dw)
 }
 
 func (dw *DwtkIceAdapter) WriteLFuse(data byte) error {

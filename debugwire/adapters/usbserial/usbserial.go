@@ -83,6 +83,10 @@ func (us *UsbSerialAdapter) SetMCU(mcu *devices.MCU) {
 	us.mcu = mcu
 }
 
+func (us *UsbSerialAdapter) GetMCU() *devices.MCU {
+	return us.mcu
+}
+
 func (us *UsbSerialAdapter) Enable() error {
 	return errNotSupported
 }
