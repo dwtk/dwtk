@@ -35,7 +35,6 @@ func ioctl(fd int, req uint, arg uintptr) error {
 			return fmt.Errorf("usbserial: %s", errno)
 		}
 	}
-	return nil
 }
 
 func open(portDevice string, baudrate uint32) (int, error) {
