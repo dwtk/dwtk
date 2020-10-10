@@ -11,6 +11,7 @@ import (
 
 func waitForDwOrGdb(ctx context.Context, dw *debugwire.DebugWIRE, conn *tcpConn) ([]byte, error) {
 	nctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
 	sigGdb := make(chan bool)
 	sigDw := make(chan bool)
@@ -27,22 +28,12 @@ func waitForDwOrGdb(ctx context.Context, dw *debugwire.DebugWIRE, conn *tcpConn)
 		}
 	}()
 
-	var (
-		err    error
-		packet []byte
-	)
-
 	select {
 	case <-ctx.Done():
-		packet = []byte("S00")
+		return []byte("S00"), nil
 	case <-sigGdb:
-		cancel()
-		packet = []byte("S02")
+		return []byte("S02"), nil
 	case <-sigDw:
-		cancel()
-		packet = []byte("S05")
-		err = dw.RecvBreak()
+		return []byte("S05"), dw.RecvBreak()
 	}
-
-	return packet, err
 }

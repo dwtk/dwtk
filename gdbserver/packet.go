@@ -124,8 +124,6 @@ func handlePacket(ctx context.Context, dw *debugwire.DebugWIRE, conn *tcpConn) e
 			}
 		}
 	}
-
-	return nil
 }
 
 func writePacket(conn *tcpConn, b []byte) error {
