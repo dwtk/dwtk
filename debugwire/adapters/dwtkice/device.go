@@ -3,9 +3,10 @@ package dwtkice
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/dwtk/dwtk/internal/logger"
-	"github.com/dwtk/dwtk/internal/usbfs"
+	"github.com/rafaelmartins/usbfs"
 )
 
 const (
@@ -149,35 +150,43 @@ type device struct {
 }
 
 func newDevice(serialNumber string) (*device, error) {
-	devices, err := usbfs.GetDevices(vid, pid)
+	serials := []string{}
+	devices, err := usbfs.List(func(d *usbfs.Device) bool {
+		idVendor, err := d.IdVendor()
+		if err != nil || idVendor != vid {
+			return false
+		}
+
+		idProduct, err := d.IdProduct()
+		if err != nil || idProduct != pid {
+			return false
+		}
+
+		if serialNumber != "" {
+			serial, err := d.Serial()
+			if err != nil || serial != serialNumber {
+				return false
+			}
+			serials = append(serials, serial)
+		}
+
+		return true
+	})
 	if err != nil {
 		return nil, err
 	}
 	if len(devices) == 0 {
-		return nil, nil
-	}
-	var dev *usbfs.Device
-	if serialNumber == "" {
-		if len(devices) > 1 {
-			serials := []string{}
-			for _, s := range devices {
-				serials = append(serials, s.GetSerial())
-			}
-			return nil, fmt.Errorf("debugwire: dwtk-ice: more than one device found. this is not supported: %s",
-				strings.Join(serials, ", "))
-		}
-		dev = devices[0]
-	} else {
-		for _, d := range devices {
-			if serialNumber == d.GetSerial() {
-				dev = d
-				break
-			}
-		}
-		if dev == nil {
+		if serialNumber != "" {
 			return nil, fmt.Errorf("debugwire: dwtk-ice: device not found: %s", serialNumber)
 		}
+		return nil, nil
 	}
+	if len(devices) > 1 {
+		return nil, fmt.Errorf("debugwire: dwtk-ice: more than one device found. this is not supported: %s",
+			strings.Join(serials, ", "))
+	}
+	dev := devices[0]
+
 	if err := dev.Open(); err != nil {
 		return nil, err
 	}
@@ -206,16 +215,21 @@ func (d *device) close() error {
 }
 
 func (d *device) getVersion() string {
-	return fmt.Sprintf("%s", d.dev.GetVersion())
+	bcdDevice, err := d.dev.BcdDevice()
+	if err != nil {
+		return "UNKNOWN"
+	}
+	return fmt.Sprintf("%x.%02x", bcdDevice/0x0100, bcdDevice%0x0100)
 }
 
 func (d *device) getSerial() string {
-	return d.dev.GetSerial()
+	rv, _ := d.dev.Serial()
+	return rv
 }
 
 func (d *device) controlGetError() error {
 	f := make([]byte, 3)
-	if err := d.dev.ControlIn(cmdGetError, 0, 0, f); err != nil {
+	if err := d.dev.Control(usbfs.RequestTypeVendor, usbfs.RequestRecipientDevice, usbfs.DirectionIn, cmdGetError, 0, 0, f, 5*time.Second); err != nil {
 		return err
 	}
 	logger.Debug.Printf("<<< cmdGetError: 0x%02x -> [0x%02x, 0x%02x]", f[0], f[1], f[2])
@@ -230,7 +244,7 @@ func (d *device) controlIn(req byte, val uint16, idx uint16, data []byte) error 
 		logger.Debug.Printf("<<< %d(0x%04x, 0x%04x)", req, val, idx)
 	}
 	f := make([]byte, len(data)+3)
-	if err := d.dev.ControlIn(req, val, idx, f); err != nil {
+	if err := d.dev.Control(usbfs.RequestTypeVendor, usbfs.RequestRecipientDevice, usbfs.DirectionIn, req, val, idx, f, 5*time.Second); err != nil {
 		return err
 	}
 	logger.Debug.Printf("<<< error: 0x%02x -> [0x%02x, 0x%02x]", f[0], f[1], f[2])
@@ -248,7 +262,7 @@ func (d *device) controlOut(req byte, val uint16, idx uint16, data []byte) error
 	} else {
 		logger.Debug.Printf(">>> %d(0x%04x, 0x%04x)", req, val, idx)
 	}
-	if err := d.dev.ControlOut(req, val, idx, data); err != nil {
+	if err := d.dev.Control(usbfs.RequestTypeVendor, usbfs.RequestRecipientDevice, usbfs.DirectionOut, req, val, idx, data, 5*time.Second); err != nil {
 		return err
 	}
 	for _, c := range data {
