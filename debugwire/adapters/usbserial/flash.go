@@ -33,14 +33,14 @@ func (us *UsbSerialAdapter) spm() error {
 	if err := us.WriteInstruction(avr.OUT(us.mcu.SPMCSR().Io8(), 29)); err != nil {
 		return err
 	}
-	if err := us.SetPC(us.mcu.NRWWStart()); err != nil {
+	if err := us.SetPC(us.mcu.NRWWOffset()); err != nil {
 		return err
 	}
 	return us.WriteInstruction(avr.SPM())
 }
 
 func (us *UsbSerialAdapter) enableRWW() error {
-	if us.mcu.NRWWStart() == 0 {
+	if us.mcu.NRWWOffset() == 0 {
 		return nil
 	}
 
