@@ -162,14 +162,16 @@ func newDevice(serialNumber string) (*device, error) {
 			return false
 		}
 
-		if serialNumber != "" {
-			serial, err := d.Serial()
-			if err != nil || serial != serialNumber {
-				return false
-			}
-			serials = append(serials, serial)
+		serial, err := d.Serial()
+		if err != nil {
+			return false
 		}
 
+		if serialNumber != "" && serial != serialNumber {
+			return false
+		}
+
+		serials = append(serials, serial)
 		return true
 	})
 	if err != nil {
