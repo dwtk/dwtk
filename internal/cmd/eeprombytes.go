@@ -60,7 +60,7 @@ var EEPROMBytesCmd = &cobra.Command{
 		if err := dw.ReadEEPROM(startEEPROMBytes, read); err != nil {
 			return err
 		}
-		if bytes.Compare(f, read) != 0 {
+		if !bytes.Equal(f, read) {
 			return fmt.Errorf("EEPROM mismatch: %v != %v", f, read)
 		}
 

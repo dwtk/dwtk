@@ -88,7 +88,7 @@ var RootCmd = &cobra.Command{
 		}
 
 		if dw.MCU == nil {
-			return fmt.Errorf("Failed to detect MCU")
+			return fmt.Errorf("failed to detect MCU")
 		}
 
 		noReset = false

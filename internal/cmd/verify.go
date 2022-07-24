@@ -31,8 +31,8 @@ var VerifyCmd = &cobra.Command{
 			if err := dw.ReadFlash(page.Address, read); err != nil {
 				return err
 			}
-			if bytes.Compare(page.Data, read) != 0 {
-				return fmt.Errorf("Page mismatch 0x%04x: %v != %v", page.Address, page.Data, read)
+			if !bytes.Equal(page.Data, read) {
+				return fmt.Errorf("page mismatch 0x%04x: %v != %v", page.Address, page.Data, read)
 			}
 		}
 
